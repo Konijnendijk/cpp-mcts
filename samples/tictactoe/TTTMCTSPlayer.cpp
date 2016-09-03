@@ -14,7 +14,8 @@ public:
 	TTTBackpropagation(Player player) : player(player) {}
 
 	float updateScore(Board* state, float backpropScore) {
-		return state->getCurrentPlayer() == player ? backpropScore : 1-backpropScore;
+		// When the current player is our player, the enemy has performed its move and the score should be the inverse
+		return state->getCurrentPlayer() == player ? 1-backpropScore : backpropScore;
 	}
 
 	~TTTBackpropagation() override {}
@@ -42,9 +43,9 @@ public:
 	 */
 	float score(Board* state) override {
 		if (state->won()==player)
-			return 0;
-		else if (state->won()!=NONE)
 			return 1;
+		else if (state->won()!=NONE)
+			return 0;
 		else
 			return 0.75;
 	}
