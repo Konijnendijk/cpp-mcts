@@ -51,6 +51,7 @@ Board& Board::operator=(const Board& other){
 		current=other.current;
 		turns=other.turns;
 	}
+	return *this;
 }
 
 void Board::print(std::ostream& strm) {

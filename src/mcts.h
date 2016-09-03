@@ -668,7 +668,7 @@ private:
 		for (Node<T,A,E>* n : children){
 
 
-			float score=n->getAvgScore()+C*sqrt(log(node->getNumVisits())/n->getNumVisits());
+			float score=n->getAvgScore()+C*(float)sqrt(log(node->getNumVisits())/n->getNumVisits());
 
 			#ifdef PROG_HIST
 			auto stats=history.find(n->getAction());
