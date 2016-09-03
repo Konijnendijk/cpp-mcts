@@ -1,0 +1,6 @@
+# Non-source directories
+build/
+docs/
+
+# IDE specific
+.idea/

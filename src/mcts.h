@@ -14,7 +14,10 @@
 using namespace std::chrono;
 
 /**
- * Children of this class should represent game states.
+ * @brief Children of this class should represent game states
+ *
+ * A game state is the representation of a single point in the game. For instance in chess, it should at least store all
+ * pieces and their locations.
  */
 class State{
 	friend std::ostream& operator<<(std::ostream& strm, State& s){
@@ -23,6 +26,15 @@ class State{
 	};
 
 protected:
+    /**
+     * @brief Print a human-readable representation of this state
+     *
+     * Used for debugging MCTS. Implementations should print a human-readable representation of themselves
+     * to the provided stream strm. This representation will also be used when outputting a .dot file using
+     * the writeDotFile function from graphviz.h.
+     *
+     * @param strm The stream to print to
+     */
 	virtual void print(std::ostream &strm) {strm << this;};
 
 public:
@@ -30,9 +42,13 @@ public:
 };
 
 /**
- * Children of this class should represent an action a player can execute on a State.
+ * @brief Implementations of this class should represent an action a player can execute on a State.
  *
- * Action must implement a copy constructor.
+ * An action is something that acts on a State and results in another. For example in chess
+ *
+ * <b>Action must implement a copy constructor.</b>
+ *
+ * @tparam The State type this Action can be executed on
  */
 template<class T>
 class Action{
@@ -46,51 +62,66 @@ protected:
 
 public:
 	/**
-	 * Should execute this action on the given state.
+	 * @brief Apply this Action on the given State
+	 *
+	 * Should transform the given state to a new one according to this action. For example in chess, calling execute
+	 * could move the king one square.
+	 *
 	 * @note Cloning the state is not required
-	 * @param data
+	 * @param state The state to execute on
 	 */
-	virtual void execute(T* data)=0;
+	virtual void execute(T* state)=0;
 
 	/**
-	 * Should return the hash code of this action.
-	 * @return
+	 * @brief Calculate a hash of this action
+	 *
+	 * @noteImplementing this is only required when using progressive history. See MCTS for more details.
+	 * @return The unique (over all possible actions in the game) hash of this action
 	 */
-	virtual size_t hash()=0;
+	virtual size_t hash() {return 0;};
 
 	/**
+	 * @brief Returns true when this Action equals the given action
+	 *
+     * @note Implementing this is only required when using progressive history. See MCTS for more details.
 	 * @return True if this and other are equal, false if not
 	 */
-	virtual bool equals(Action<T>* other)=0;
+	virtual bool equals(Action<T>* other) { return this==other; };
 
 	virtual ~Action(){};
 };
 
-namespace std{
-/**
- * Hash specialization for Action pointers used in the Progressive History technique in MCTS.
- */
-template<class T>
-class hash<Action<T>*>{
-public:
-	size_t operator() (Action<T>* const & a) const {
-		return a->hash();
-	}
-};
+namespace std {
+    /**
+     * Hash specialization for Action pointers used in the Progressive History technique in MCTS.
+     */
+    template<class T>
+    class hash<Action<T>*>{
+    public:
+        size_t operator() (Action<T>* const & a) const {
+            return a->hash();
+        }
+    };
 
-/**
- * equal_to specialization for Action pointers used in the Progressive History technique in MCTS.
- */
-template<class T>
-class equal_to<Action<T>*>{
-public :
-	bool operator() (Action<T>* const & x, Action<T>* const & y) const {return x->equals(y);}
-};
+    /**
+     * equal_to specialization for Action pointers used in the Progressive History technique in MCTS.
+     */
+    template<class T>
+    class equal_to<Action<T>*>{
+    public :
+        bool operator() (Action<T>* const & x, Action<T>* const & y) const {return x->equals(y);}
+    };
 }
 
+/**
+ * @brief Base class for strategies
+ *
+ * A strategy is a behaviour that can generate an Action depending on a State.
+ */
 template<class T>
 class Strategy{
 protected:
+    /** The state a PlayoutStrategy or ExpansionStrategy will act on  */
 	T* state;
 
 public:
@@ -100,7 +131,14 @@ public:
 };
 
 /**
- * Children of this class should generate actions given a state.
+ * @brief A strategy that lazily generates child states given the parent state
+ *
+ * This strategy generates actions that are used in the expansion stage of MCTS.
+ *
+ * @note Implementing classes must have a constructor taking only one parameter of type State
+ *
+ * @tparam T The type of State this ExpansionStrategy can generate Actions for
+ * @tparam A The type of Actions that will be generated
  */
 template<class T, class A>
 class ExpansionStrategy : public Strategy<T> {
@@ -109,9 +147,12 @@ public:
 	ExpansionStrategy(T* state) : Strategy<T>(state) {}
 
 	/**
-	 * Generates the next Action in a sequence. Allows lazy generation.
+	 * @brief Generate the next action in the sequence of possible ones
 	 *
-	 * @return An Action that has not been returned before, or NULL if no such Action exists
+	 * Generate a action that can be performed on Strategy#state and which has not been returned before by this
+	 * instance of ExpansionStrategy.
+	 *
+	 * @return An Action that has not been returned before, or nullptr if no such Action exists
 	 */
 	virtual A* generateNext()=0;
 
@@ -123,6 +164,16 @@ public:
 	virtual ~ExpansionStrategy() override {}
 };
 
+/**
+ * @brief Generate random actions
+ *
+ * This strategy generates random actions that are used in the playout stage of MCTS.
+ *
+ * @note Implementing classes must have a constructor taking only one parameter of type State
+ * 
+ * @tparam T The type of State this PlayoutStrategy can generate Actions for
+ * @tparam A The type of Actions that will be generated
+ */
 template<class T, class A>
 class PlayoutStrategy : public Strategy<T>{
 
@@ -130,13 +181,29 @@ public:
 	PlayoutStrategy(T* state) : Strategy<T>(state) {}
 
 	/**
-	 * @return A random Action that can be executed on this strategy's State
+	 * @brief Generate a random action
+     * Generate a random Action that can be performed on Strategy#state.
+     *
+	 * @return A random Action that can be executed on Strategy#state
 	 */
 	virtual void generateRandom(A* action)=0;
 
 	virtual ~PlayoutStrategy() override {}
 };
 
+/**
+ * @brief Adjusts a score being backpropagated
+ *
+ * When backpropagating a score through the tree it can be adjusted by this class. Backpropagation::updateScore() is
+ * called before Node#update() and the result of Backpropagation::updateScore() is passed to Node::update() instead of the
+ * score resulting from Scoring.
+ *
+ * This is useful for e.g. multiplayer games. For example in chess, the score for the current player should not be
+ * adjusted while the score for the enemy player should be inverted (a win for the current player is a loss for the
+ * enemy player).
+ *
+ * @tparam T The State type this Backpropagation can calculate updated scores for
+ */
 template<class T>
 class Backpropagation  {
 
@@ -144,8 +211,8 @@ public:
 	Backpropagation() {}
 
 	/**
-	 * @param state the state the score is currently being updated for
-	 * @param backpropScore the score being backpropagated
+	 * @param state The state the score is currently being updated for
+	 * @param backpropScore The score being backpropagated resulting from Scoring::score()
 	 * @return An updated score for the current state
 	 */
 	virtual float updateScore(T* state, float backpropScore)=0;
@@ -153,23 +220,50 @@ public:
 	virtual ~Backpropagation() {}
 };
 
+/**
+ * @brief check if a state is terminal
+ *
+ * Checks if a state is terminal, i.e. the end of the game.
+ *
+ * @tparam T The State type this TeminationCheck can check
+ */
 template<class T>
 class TerminationCheck{
 
 public:
 	TerminationCheck() {}
 
+    /**
+     * @return True if the given state can not haven any children, i.e. the end of the game is reached
+     */
 	virtual bool isTerminal(T* state)=0;
 
 	virtual ~TerminationCheck(){}
 };
 
+/**
+ * @brief Calculates the score of a terminal state
+ *
+ * Calculate the score of a terminal (i.e. end-of-game) state. A score is usually a number between 0 and 1 where 1 is
+ * the best possible score. A score is calculated at the end of the playout stage and is then backpropagated. During
+ * backpropagation scores can be updated using Backpropagation.
+ *
+ * @tparam T The State type this Scoring can calculate scores for
+ */
 template<class T>
 class Scoring {
 
 public:
 	Scoring() {}
 
+    /**
+     * @brief Calculate a score for a terminal state
+     *
+     * A score should be high when the state represents a good end result for the current player and low when
+     * the end result is poor.
+     *
+     * @return A score for the given state
+     */
 	virtual float score(T* state)=0;
 
 	virtual ~Scoring(){}
@@ -177,7 +271,14 @@ public:
 
 
 /**
- * Class used in the internal data structure of MCTS
+ * @brief Class used in the internal data structure of MCTS
+ *
+ * A Node contains all information needed to generate children. It keeps track of its score and the number of times
+ * it has been visited. Furthermore it is used to generate new nodes according to the ExpansionStrategy E.
+ *
+ * @tparam T The State type that is stored in a node
+ * @tparam A The type of Action taken to get to this node
+ * @tparam E The ExpansionStrategy to use when generating new nodes
  */
 template<class T, class A, class E>
 class Node{
@@ -192,6 +293,17 @@ class Node{
 	float score;
 
 public:
+    /**
+     * @brief Create a new node in the search tree
+     *
+     * This constructor initializes the nodes and creates a new instance of the ExpansionStrategy passed as template
+     * parameter E.
+     *
+     * @param id An identifier unique to the tree this node is in
+     * @param data The state stored in this node
+     * @param parent The parent node
+     * @param action The action taken to get to this node from the parent node
+     */
 	Node(unsigned int id, T* data, Node<T,A,E>* parent, A* action) : id(id), data(data), parent(parent), action(action), expansion(new E(data)), numVisits(0), score(0) {
 	};
 
@@ -210,7 +322,7 @@ public:
 	}
 
 	/**
-	 * @return This Node's parent or NULL if no parent exists (this Node is the root)
+	 * @return This Node's parent or nullptr if no parent exists (this Node is the root)
 	 */
 	Node<T,A,E>* getParent(){
 		return parent;
@@ -231,14 +343,14 @@ public:
 	}
 
 	/**
-	 * @return A new action if there are any remaining, NULL if not
+	 * @return A new action if there are any remaining, nullptr if not
 	 */
 	A* generateNextAction(){
 		return expansion->generateNext();
 	}
 
 	/**
-	 * Add a child to this Node's children
+	 * @brief Add a child to this Node's children
 	 * @param child The child to add
 	 */
 	void addChild(Node<T,A,E>* child){
@@ -246,7 +358,7 @@ public:
 	}
 
 	/**
-	 * Checks this Node's ActionGenerator if there are more Actions to be generated.
+	 * @brief Checks this Node's ActionGenerator if there are more Actions to be generated.
 	 * @return True if it is still possible to add children
 	 */
 	bool shouldExpand(){
@@ -255,7 +367,7 @@ public:
 	}
 
 	/**
-	 * Update this Node's score and increment the number of visits.
+	 * @brief Update this Node's score and increment the number of visits.
 	 * @param score
 	 */
 	void update(float score){
@@ -287,7 +399,34 @@ public:
 };
 
 /**
- * AI search technique for finding the best Action give a certain State.
+ * @brief AI search technique for finding the best Action give a certain State
+ *
+ * The MCTS algorithm has four stages: selection, expansion, playout and backpropagation. This class represents the
+ * general framework for executing these stages and uses a number of user-implemented classes which implement the game
+ * rules.
+ *
+ * In the selection stage, MCTS uses the UCT formula to select the best node (or randomly if a node has not been
+ * visited often enough, see MCTS::setMinVisits()) until it finds a node that still has nodes left to be expanded. The
+ * UCT formula has one parameter, see MCTS::setC(). When PROG_HIST is defined, the progressive history heuristic is used
+ * to influence the selection based on the success of an action during the playout stage. MCTS::setW() is used to set
+ * the W parameter for progressive history.
+ *
+ * In the expansion stage an action is requested from the ExpansionStrategy and a node is expanded using that action.
+ * When a node is not visited at least T times, expansion is skipped (see MCTS::setMinT()).
+ *
+ * In the playout stage, the PlayoutStrategy is used to generate moves until the end of the game is reached. When a
+ * terminal state (the end of the game) is encoutered, the score is calculated using Scoring.
+ *
+ * In the backpropagation stage, Node::update() is called for each node from the node expanded in the expansion stage
+ * to the root node. The score passed to Node::update() is the one from the call to Scoring::score() passed to
+ * Backpropagation::updateScore() for each call to Node::update().
+ *
+ * The time that MCTS is allowed to search van be set by MCTS::setTime().
+ *
+ * @tparam T The State type this MCTS operates on
+ * @tparam A The Action type this MCTS operates on
+ * @tparam E The ExpansionStrategy this MCTS uses
+ * @tparam P The PlayoutStrategy this MCTS uses
  */
 template<class T, class A, class E, class P>
 class MCTS {
@@ -303,11 +442,11 @@ class MCTS {
 	/** Default W for the progressive history formula */
 	static constexpr float DEFAULT_W=0.0;
 
-	/** Minimum number of visits until a Node will be selected using the UCT formula, below this number random selection is used */
-	const int MIN_VISITS=2;
-
 	/** Minimum number of visits until a Node will be expanded */
 	const int DEFAULT_MIN_T=5;
+
+	/** Default number of visits until a node can be selected using UCT instead of randomly */
+	const int DEFAULT_MIN_VISITS=5;
 
 	Backpropagation<T>* backprop;
 	TerminationCheck<T>* termination;
@@ -335,6 +474,9 @@ class MCTS {
 	/** Minimum number of visits until a Node will be expanded */
 	int minT;
 
+	/** Minimum number of visits until a Node will be selected using the UCT formula, below this number random selection is used */
+	int minVisits;
+
 	/** Variable to assign IDs to a node */
 	unsigned int currentNodeID;
 
@@ -346,12 +488,18 @@ class MCTS {
 
 public:
 	/**
-	 * backprop, termination and scoring will be deleted by this instance.
+	 * @note backprop, termination and scoring will be deleted by this MCTS instance
 	 */
-	MCTS(T* rootData, Backpropagation<T>* backprop, TerminationCheck<T>* termination, Scoring<T>* scoring) : backprop(backprop), termination(termination), scoring(scoring), root(new Node<T,A,E>(0, rootData, 0, new A())), history(), time(milliseconds(DEFAULT_TIME)), minIterations(DEFAULT_MIN_ITERATIONS), C(DEFAULT_C), W(DEFAULT_W), minT(DEFAULT_MIN_T), currentNodeID(0), selectTime(microseconds::zero()), expandTime(microseconds::zero()),simulateTime(microseconds::zero()), iterations(0) {}
+	MCTS(T* rootData, Backpropagation<T>* backprop, TerminationCheck<T>* termination, Scoring<T>* scoring) :
+	    backprop(backprop), termination(termination), scoring(scoring), root(new Node<T,A,E>(0, rootData, 0, new A())),
+	        history(), time(milliseconds(DEFAULT_TIME)), minIterations(DEFAULT_MIN_ITERATIONS), C(DEFAULT_C),
+	            W(DEFAULT_W), minT(DEFAULT_MIN_T), minVisits(DEFAULT_MIN_VISITS), currentNodeID(0),
+	                selectTime(microseconds::zero()), expandTime(microseconds::zero()),
+	                    simulateTime(microseconds::zero()), iterations(0) {}
 
 	/**
-	 * Runs the MCTS algorithm and searches for the best Action
+	 * @brief Runs the MCTS algorithm and searches for the best Action
+	 *
 	 * @return The Action found by MCTS
 	 */
 	A* calculateAction(){
@@ -360,14 +508,13 @@ public:
 
 		search();
 
+        #ifdef _DEBUG
 		std::cerr << iterations << " iterations in " << duration_cast<milliseconds>(system_clock::now()-old).count() << "ms" << std::endl;
-
-		#ifdef _DEBUG
 		std::cerr << "Average select:" << (float)(selectTime.count()/1000)/iterations/1000 << "ms Average expand:" << (float)(expandTime.count())/iterations/1000 << "ms Average simulate:" << (float)(simulateTime.count())/iterations/1000 << "ms" << std::endl;
 		#endif
 
 		// Select the Action with the best score
-		Node<T,A,E>* best=NULL;
+		Node<T,A,E>* best=nullptr;
 		float bestScore=-std::numeric_limits<float>::max();
 		std::vector<Node<T,A,E>*> children=root->getChildren();
 
@@ -378,10 +525,6 @@ public:
 				best=children[i];
 			}
 		}
-
-		#ifdef _DEBUG
-		writeDotFile(root, "mcts.dot");
-        #endif
 
         for (auto kv : history)
             std::cout << kv.first->hash() << " " << kv.second.first << std::endl;
@@ -398,24 +541,41 @@ public:
 	}
 
 	/**
-	 * Set the C parameter of the UCT formula
-	 * @param C
+	 * @brief Set the C parameter of the UCT formula
+	 * @param C The C parameter
 	 */
 	void setC(float C){
 		this->C=C;
 	}
 
+    /**
+     * @brief Set the W parameter of the progressive history heuristic.
+     * @param W the W parameter
+     */
 	void setW(float W){
 		this->W=W;
 	}
 
+    /**
+     * @brief Set the minimal number of visits until a node is expanded
+     * @param minT the minimal number of visits
+     */
 	void setMinT(float minT){
 		this->minT = minT;
 	}
 
+    /**
+     * Set the minimum number of visits until UCT is used instead of random selection during the selection stage.
+     * @param minVisits The minimal number of visits
+     */
+	void setMinVisits(int minVisits) {
+	    this->minVisits = minVisits;
+	}
+
 	/**
 	 * Get the root of the MCTS tree. Useful for printing.
-	 * @return
+	 * @see writeDotFile()
+	 * @return The root of the MCTS tree
 	 */
 	Node<T,A,E>* getRoot(){
 		return root;
@@ -495,20 +655,20 @@ private:
 
 	/** Selects the best child node at the given node */
 	Node<T,A,E>* select(Node<T,A,E>* node){
-		Node<T,A,E>* best=NULL;
+		Node<T,A,E>* best=nullptr;
 		float bestScore=-std::numeric_limits<float>::max();
 		
 		std::vector<Node<T,A,E>*> children=node->getChildren();
 
 		//Select randomly if the Node has not been visited often enough
-		if (node->getNumVisits()<MIN_VISITS)
+		if (node->getNumVisits()<minVisits)
 			return children[rand()%children.size()];
 		
 		// Use the UCT formula for selection
 		for (Node<T,A,E>* n : children){
 
 
-			float score=n->getAvgScore()+C*sqrt(log(node->getNumVisits())/n->getNumVisits());
+			float score=n->getAvgScore()+C*(float)sqrt(log(node->getNumVisits())/n->getNumVisits());
 
 			#ifdef PROG_HIST
 			auto stats=history.find(n->getAction());
@@ -527,7 +687,7 @@ private:
 
 		return best;
 	}
-	/** Get the next Action for the given Node, execute if and add the new Node to the tree. */
+	/** Get the next Action for the given Node, execute and add the new Node to the tree. */
 	Node<T,A,E>* expandNext(Node<T,A,E>* node){
 		T* expandedData=new T(*node->getData());
 		A* action = node->generateNextAction();
@@ -554,6 +714,7 @@ private:
 			delete playout;
 		}
 
+        // Score the leaf node (end of the game)
 		float s =scoring->score(state);
 
 		#ifdef PROG_HIST
