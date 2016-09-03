@@ -13,7 +13,7 @@
 #include "TTTAction.h"
 
 GUI::GUI(QWidget* parent) :
-		QWidget(parent) {
+		QWidget(parent), board(nullptr) {
 	createPlayerSelect();
 	createBoard();
 
@@ -198,7 +198,7 @@ void GUI::newGame(){
 }
 
 void GUI::boardClicked(){
-	if (isCurrentPlayerHuman()){
+	if (board!=nullptr && isCurrentPlayerHuman()){
 		auto selected = scene->selectedItems();
 		if (selected.size()>0){
 			QGraphicsItem* item = selected[0];
