@@ -421,6 +421,8 @@ public:
  * to the root node. The score passed to Node::update() is the one from the call to Scoring::score() passed to
  * Backpropagation::updateScore() for each call to Node::update().
  *
+ * The time that MCTS is allowed to search van be set by MCTS::setTime().
+ *
  * @tparam T The State type this MCTS operates on
  * @tparam A The Action type this MCTS operates on
  * @tparam E The ExpansionStrategy this MCTS uses
@@ -496,7 +498,8 @@ public:
 	                    simulateTime(microseconds::zero()), iterations(0) {}
 
 	/**
-	 * Runs the MCTS algorithm and searches for the best Action
+	 * @brief Runs the MCTS algorithm and searches for the best Action
+	 *
 	 * @return The Action found by MCTS
 	 */
 	A* calculateAction(){
