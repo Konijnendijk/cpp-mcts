@@ -329,7 +329,7 @@ public:
 	/**
 	 * @return All children of this Node
 	 */
-	std::vector<Node<T,A,E>*> getChildren(){
+	std::vector<Node<T,A,E>*>& getChildren(){
 		return children;
 	}
 
