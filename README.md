@@ -38,7 +38,7 @@ and add `target_link_libraries(target CPP_MCTS)` to your `CMakeLists.txt`.
 
 To build the samples, make sure the `CPP_MCTS_BUILD_SAMPLES` is `ON` and that you have
 installed Qt5. Run CMake in the project root directory
-(e.g. `cmake -G"Unix Makefiles" -DCPP_MCTS_BUILD_SAMPLES=ON .`) or out of source
-(e.g. `cmake -G"Unix Makefiles" -DCPP_MCTS_BUILD_SAMPLES=ON /path/to/source`).
+(e.g. `cmake -G"Unix Makefiles" -DCPP_MCTS_BUILD_SAMPLES=ON -DCMAKE_PREFIX_PATH="/path/to/qt5" .`) or out of source
+(e.g. `cmake -G"Unix Makefiles" -DCPP_MCTS_BUILD_SAMPLES=ON -DCMAKE_PREFIX_PATH="/path/to/qt5" /path/to/source`).
 And run `make` and `make install`. On Windows, in order to run the TicTacToe sample,
 copy Qt5Core.dll, Qt5Gui.dll and Qt5Widgets.dll to the same folder as TicTacToe.exe.
