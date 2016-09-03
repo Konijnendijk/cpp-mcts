@@ -52,18 +52,6 @@ public:
 	~TTTScoring() override {}
 };
 
-/**
- *
- * @param n
- * @return The Node's average score in case of the MCTS player, 1-the Node's average score in case of its opponent
- */
-float selectionScore(Board* state, TTTAction* action, float score){
-	if (state->getCurrentPlayer()==CIRCLE)
-		return 1-score;
-	else
-		return score;
-}
-
 TTTMCTSPlayer::TTTMCTSPlayer(Board* board) : board(board), mcts() {}
 
 TTTAction* TTTMCTSPlayer::calculateAction(){
