@@ -516,7 +516,7 @@ public:
 		// Select the Action with the best score
 		Node<T,A,E>* best=nullptr;
 		float bestScore=-std::numeric_limits<float>::max();
-		std::vector<Node<T,A,E>*> children=root->getChildren();
+		std::vector<Node<T,A,E>*>& children=root->getChildren();
 
 		for (unsigned int i=0; i<children.size();i++){
 			float score=children[i]->getAvgScore();
@@ -658,7 +658,7 @@ private:
 		Node<T,A,E>* best=nullptr;
 		float bestScore=-std::numeric_limits<float>::max();
 		
-		std::vector<Node<T,A,E>*> children=node->getChildren();
+		std::vector<Node<T,A,E>*>& children=node->getChildren();
 
 		//Select randomly if the Node has not been visited often enough
 		if (node->getNumVisits()<minVisits)
