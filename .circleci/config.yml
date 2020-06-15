@@ -1,5 +1,8 @@
 version: 2.1
 
+orbs:
+  sonarcloud: sonarsource/sonarcloud@1.0.1
+
 jobs:
   build_agent:
     docker:
@@ -31,21 +34,22 @@ jobs:
       - cmake:
           build_type: Debug
       - run:
-          name: Qt MOC
+          name: Build
           working_directory: build
-          command: ninja TicTacToe_autogen
+          command: build-wrapper-linux-x86-64 --out-dir build-wrapper-output ninja
       - run:
           name: Clang tidy
           command: run-clang-tidy -checks='*' -header-filter='.*' -p build > clang-tidy-report
-      - store_artifacts:
-          path: clang-tidy-report
+      - sonarcloud/scan
+
 
 workflows:
   version: 2.1
   build:
     jobs:
       - compile
-      - lint
+      - lint:
+          context: SonarCloud
   build_agent:
     jobs:
       - build_agent
