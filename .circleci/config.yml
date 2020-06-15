@@ -48,7 +48,7 @@ workflows:
   build:
     jobs:
       - build_agent
-      - compile
+      - compile:
           requires:
             - build_agent
       - lint:
