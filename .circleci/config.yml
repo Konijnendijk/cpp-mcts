@@ -47,12 +47,14 @@ workflows:
   version: 2.1
   build:
     jobs:
-      - compile
-      - lint:
-          context: SonarCloud
-  build_agent:
-    jobs:
       - build_agent
+      - compile
+          requires:
+            - build_agent
+      - lint:
+          requires:
+            - compile
+
 
 commands:
   cmake:
