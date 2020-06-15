@@ -9,8 +9,7 @@ jobs:
       - image: circleci/buildpack-deps:buster
     steps:
       - checkout
-      - setup_remote_docker:
-          docker_layer_caching: true
+      - setup_remote_docker
       - run:
           name: Build and push build agent docker container
           command: |
@@ -43,15 +42,19 @@ jobs:
           command: run-clang-tidy -checks='*' -header-filter='.*' -p build > clang-tidy-report
       - sonarcloud/scan
 
+parameters:
+  build_agent_container:
+    description: Whether to build the build agent docker container
+    type: boolean
+    default: false
 
 workflows:
   version: 2.1
   build:
     jobs:
-      - build_agent
-      - compile:
-          requires:
-            - build_agent
+      - build_agent:
+          when: << pipeline.parameters.build_agent_container >>
+      - compile
       - lint:
           requires:
             - compile
