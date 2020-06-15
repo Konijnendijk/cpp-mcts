@@ -1,0 +1,64 @@
+version: 2.1
+
+jobs:
+  build_agent:
+    docker:
+      - image: circleci/buildpack-deps:buster
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          name: Build and push build agent docker container
+          command: |
+            docker build build-agent -t konijnendijk/cpp-mcts-build:${CIRCLE_BRANCH}
+            echo "${DOCKERHUB_PASS}" | docker login -u "${DOCKERHUB_USERNAME}" --password-stdin
+            docker push konijnendijk/cpp-mcts-build:${CIRCLE_BRANCH}
+  compile:
+    docker:
+      - image: konijnendijk/cpp-mcts-build:${CIRCLE_BRANCH}
+    steps:
+      - checkout
+      - cmake
+      - run:
+          name: Build
+          working_directory: build
+          command: ninja
+  lint:
+    docker:
+      - image: konijnendijk/cpp-mcts-build:${CIRCLE_BRANCH}
+    steps:
+      - checkout
+      - cmake:
+          build_type: Debug
+      - run:
+          name: Qt MOC
+          working_directory: build
+          command: ninja TicTacToe_autogen
+      - run:
+          name: Clang tidy
+          command: run-clang-tidy -checks='*' -header-filter='.*' -p build > clang-tidy-report
+      - store_artifacts:
+          path: clang-tidy-report
+
+workflows:
+  version: 2.1
+  build:
+    jobs:
+      - compile
+      - lint
+  build_agent:
+    jobs:
+      - build_agent
+
+commands:
+  cmake:
+    description: "Generate makefiles in a build directory using CMake"
+    parameters:
+      build_type:
+        type: string
+        default: "Release"
+    steps:
+      - run:
+          name: CMake
+          working_directory: build
+          command: cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_BUILD_TYPE=<< parameters.build_type >> -G"Ninja" ..
