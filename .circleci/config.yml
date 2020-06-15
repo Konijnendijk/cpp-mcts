@@ -47,13 +47,20 @@ parameters:
     description: Whether to build the build agent docker container
     type: boolean
     default: false
+  build_mcts:
+    description: Whether to build, lint and test the MCTS library
+    type: boolean
+    default: true
 
 workflows:
   version: 2.1
-  build:
+  build_agent:
+    when: << pipeline.parameters.build_agent_container >>
     jobs:
-      - build_agent:
-          when: << pipeline.parameters.build_agent_container >>
+      - build_agent
+  build:
+    when: << pipeline.parameters.build_mcts >>
+    jobs:
       - compile
       - lint:
           requires:
