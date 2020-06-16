@@ -10,12 +10,23 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker
+      - restore_cache:
+          key: cpp-mcts-build-{{ .Branch }}
+      - run:
+          name: Load Docker cache
+          command: |
+            docker load -i cpp-mcts-build.tar || true
       - run:
           name: Build and push build agent docker container
           command: |
-            docker build build-agent -t konijnendijk/cpp-mcts-build:${CIRCLE_BRANCH}
+            docker build --cache-from=konijnendijk/cpp-mcts-build -t konijnendijk/cpp-mcts-build:${CIRCLE_BRANCH} build-agent
             echo "${DOCKERHUB_PASS}" | docker login -u "${DOCKERHUB_USERNAME}" --password-stdin
             docker push konijnendijk/cpp-mcts-build:${CIRCLE_BRANCH}
+            docker save -o cpp-mcts-build.tar konijnendijk/cpp-mcts-build:${CIRCLE_BRANCH}
+      - save_cache:
+          key: cpp-mcts-build-{{ .Branch }}-{{ checksum "cpp-mcts-build.tar" }}
+          paths:
+            - cpp-mcts-build.tar
   compile:
     docker:
       - image: konijnendijk/cpp-mcts-build:${CIRCLE_BRANCH}
@@ -53,14 +64,12 @@ parameters:
 
 workflows:
   version: 2.1
-  build_agent:
-    when: << pipeline.parameters.build_agent_container >>
+  build:
     jobs:
       - build_agent
-  build:
-    when: << pipeline.parameters.build_mcts >>
-    jobs:
-      - compile
+      - compile:
+          requires:
+            - build_agent
       - lint:
           requires:
             - compile
