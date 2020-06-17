@@ -1,0 +1,68 @@
+version: 2.1
+
+orbs:
+  sonarcloud: sonarsource/sonarcloud@1.0.1
+
+jobs:
+  build_agent:
+    docker:
+      - image: circleci/buildpack-deps:buster
+    steps:
+      - checkout
+      - setup_remote_docker:
+          version: 19.03.8
+      - run:
+          name: Build and push build agent docker image
+          command: |
+            DOCKER_BUILDKIT=1 docker build --build-arg BUILDKIT_INLINE_CACHE=1 --cache-from=konijnendijk/cpp-mcts-build:${CIRCLE_BRANCH} --cache-from=konijnendijk/cpp-mcts-build:master -t konijnendijk/cpp-mcts-build:${CIRCLE_BRANCH} build-agent
+            echo "${DOCKERHUB_PASS}" | docker login -u "${DOCKERHUB_USERNAME}" --password-stdin
+            docker push konijnendijk/cpp-mcts-build:${CIRCLE_BRANCH}
+  compile:
+    docker:
+      - image: konijnendijk/cpp-mcts-build:${CIRCLE_BRANCH}
+    steps:
+      - checkout
+      - cmake
+      - run:
+          name: Build
+          working_directory: build
+          command: ninja
+  lint:
+    docker:
+      - image: konijnendijk/cpp-mcts-build:${CIRCLE_BRANCH}
+    steps:
+      - checkout
+      - cmake:
+          build_type: Debug
+      - run:
+          name: Build
+          command: build-wrapper-linux-x86-64 --out-dir build-wrapper-output ninja -C build
+      - run:
+          name: Clang tidy
+          command: run-clang-tidy -checks='*' -header-filter='.*' -p build > clang-tidy-report
+      - sonarcloud/scan
+
+workflows:
+  version: 2.1
+  build:
+    jobs:
+      - build_agent
+      - compile:
+          requires:
+            - build_agent
+      - lint:
+          requires:
+            - compile
+
+commands:
+  cmake:
+    description: "Generate makefiles in a build directory using CMake"
+    parameters:
+      build_type:
+        type: string
+        default: "Release"
+    steps:
+      - run:
+          name: CMake
+          working_directory: build
+          command: cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_BUILD_TYPE=<< parameters.build_type >> -G"Ninja" ..

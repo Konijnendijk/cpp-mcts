@@ -1,6 +1,7 @@
 # Non-source directories
 build/
 docs/
+cmake-build-*/
 
 # IDE specific
 .idea/
