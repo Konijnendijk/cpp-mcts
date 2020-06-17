@@ -9,7 +9,8 @@ jobs:
       - image: circleci/buildpack-deps:buster
     steps:
       - checkout
-      - setup_remote_docker
+      - setup_remote_docker:
+          version: 19.03.8
       - run:
           name: Build and push build agent docker container
           command: |
