@@ -29,9 +29,11 @@ jobs:
           command: ninja
       - run:
           name: Test
-          command: build/bin/cpp_mcts_tests -r junit -o tests.xml
+          command: |
+            mkdir -p test-results/cpp-mcts
+            build/bin/cpp_mcts_tests -r junit -o test-results/cpp-mcts/tests.xml
       - store_test_results:
-          path: tests.xml
+          path: test-results
   lint:
     docker:
       - image: konijnendijk/cpp-mcts-build:${CIRCLE_BRANCH}
