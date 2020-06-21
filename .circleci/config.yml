@@ -17,16 +17,21 @@ jobs:
             DOCKER_BUILDKIT=1 docker build --build-arg BUILDKIT_INLINE_CACHE=1 --cache-from=konijnendijk/cpp-mcts-build:${CIRCLE_BRANCH} --cache-from=konijnendijk/cpp-mcts-build:master -t konijnendijk/cpp-mcts-build:${CIRCLE_BRANCH} build-agent
             echo "${DOCKERHUB_PASS}" | docker login -u "${DOCKERHUB_USERNAME}" --password-stdin
             docker push konijnendijk/cpp-mcts-build:${CIRCLE_BRANCH}
-  compile:
+  build:
     docker:
       - image: konijnendijk/cpp-mcts-build:${CIRCLE_BRANCH}
     steps:
       - checkout
       - cmake
       - run:
-          name: Build
+          name: Compile
           working_directory: build
           command: ninja
+      - run:
+          name: Test
+          command: build/bin/cpp_mcts_tests -r junit -o tests.xml
+      - store_test_results:
+          path: tests.xml
   lint:
     docker:
       - image: konijnendijk/cpp-mcts-build:${CIRCLE_BRANCH}
@@ -47,12 +52,12 @@ workflows:
   build:
     jobs:
       - build_agent
-      - compile:
+      - build:
           requires:
             - build_agent
       - lint:
           requires:
-            - compile
+            - build
 
 commands:
   cmake:
@@ -62,6 +67,10 @@ commands:
         type: string
         default: "Release"
     steps:
+      - run:
+          name: Conan install
+          working_directory: build
+          command: conan install ..
       - run:
           name: CMake
           working_directory: build
