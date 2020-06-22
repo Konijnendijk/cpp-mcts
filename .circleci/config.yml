@@ -63,7 +63,7 @@ commands:
     steps:
       - restore_cache:
           keys:
-            - conan-<< parameters.build_type >>-{{ checksum conanfile.py }}
+            - conan-<< parameters.build_type >>-{{ checksum "conanfile.py" }}
             - conan-<< parameters.build_type >>
       - run:
           name: Conan add Bincrafters remote
@@ -73,7 +73,7 @@ commands:
           working_directory: build
           command: conan install --build missing -e CC=clang -e CXX=clang++ -s build_type=<< parameters.build_type >> -s compiler=clang -s compiler.version=7.0 -s compiler.libcxx=libc++ ..
       - save_cache:
-          key: conan-<< parameters.build_type >>-{{ checksum conanfile.py }}
+          key: conan-<< parameters.build_type >>-{{ checksum "conanfile.py" }}
           paths:
             - /root/.conan/data
       - run:
