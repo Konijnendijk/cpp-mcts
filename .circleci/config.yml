@@ -22,26 +22,18 @@ jobs:
       - image: konijnendijk/cpp-mcts-build:${CIRCLE_BRANCH}
     steps:
       - checkout
-      - cmake
-      - run:
-          name: Compile
-          working_directory: build
-          command: ninja
-      - run:
-          name: Test
-          command: |
-            mkdir -p test-results/cpp-mcts
-            build/bin/cpp_mcts_tests -r junit -o test-results/cpp-mcts/tests.xml
+      - conan_build
       - store_test_results:
-          path: test-results
+          path: Testing
   lint:
     docker:
       - image: konijnendijk/cpp-mcts-build:${CIRCLE_BRANCH}
     steps:
       - checkout
-      - cmake:
+      - conan_build:
           build_type: Debug
       - run:
+          # TODO fix
           name: Build
           command: build-wrapper-linux-x86-64 --out-dir build-wrapper-output ninja -C build
       - run:
@@ -62,18 +54,29 @@ workflows:
             - build
 
 commands:
-  cmake:
+  conan_build:
     description: "Generate makefiles in a build directory using CMake"
     parameters:
       build_type:
         type: string
         default: "Release"
     steps:
+      - restore_cache:
+          keys:
+            - conan-<< parameters.build_type >>-{{ checksum conanfile.py }}
+            - conan-<< parameters.build_type >>
+      - run:
+          name: Conan add Bincrafters remote
+          command: conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan
       - run:
           name: Conan install
           working_directory: build
-          command: conan install ..
+          command: conan install --build missing -e CC=clang -e CXX=clang++ -s build_type=<< parameters.build_type >> -s compiler=clang -s compiler.version=7.0 -s compiler.libcxx=libc++ ..
+      - save_cache:
+          key: conan-<< parameters.build_type >>-{{ checksum conanfile.py }}
+          paths:
+            - /root/.conan/data
       - run:
-          name: CMake
+          name: Conan build
           working_directory: build
-          command: cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_BUILD_TYPE=<< parameters.build_type >> -G"Ninja" ..
+          command: conan build ..

@@ -1,7 +1,7 @@
 
 FROM debian:buster
 
-RUN apt-get update && apt-get install -y clang clang-tidy libqt5core5a libqt5widgets5 qtbase5-dev cmake ninja-build git curl unzip python3 python3-pip
+RUN apt-get update && apt-get install -y clang clang-tidy libgl1-mesa-dev cmake git curl unzip python3 python3-pip
 RUN pip3 install conan
 RUN curl https://sonarcloud.io/static/cpp/build-wrapper-linux-x86.zip -O && unzip build-wrapper-linux-x86.zip -d /opt && rm build-wrapper-linux-x86.zip
 
