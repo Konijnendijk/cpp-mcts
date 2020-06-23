@@ -8,6 +8,7 @@ class CPPMCTSConan(ConanFile):
 
     def build(self):
         cmake = CMake(self)
+        cmake.definitions["CMAKE_EXPORT_COMPILE_COMMANDS"] = "TRUE"
         cmake.configure()
         self.run("cmake -DBUILD_TESTING=TRUE . {}".format(cmake.command_line))
         self.run("cmake --build . {}".format(cmake.build_config))
