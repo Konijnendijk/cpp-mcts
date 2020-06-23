@@ -30,6 +30,12 @@ jobs:
             curl https://raw.githubusercontent.com/rpavlik/jenkins-ctest-plugin/master/ctest-to-junit.xsl -O
             mkdir -p test-results/mcts
             xsltproc -o test-results/mcts/junit-tests.xml ctest-to-junit.xsl Testing/*/Test.xml
+      - run:
+          name: Parse coverage data
+          working_directory: build
+          command: |
+            llvm-profdata merge bin/default.profraw -o coverage.profdata
+            llvm-cov export --instr-profile coverage.profdata ./bin/cpp_mcts_tests > coverage-export.json
       - store_test_results:
           path: build/test-results
   lint:
