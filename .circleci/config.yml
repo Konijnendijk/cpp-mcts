@@ -23,8 +23,15 @@ jobs:
     steps:
       - checkout
       - conan_build
+      - run:
+          name: Parse test results
+          working_directory: build
+          command: |
+            curl https://raw.githubusercontent.com/rpavlik/jenkins-ctest-plugin/master/ctest-to-junit.xsl -O
+            mkdir -p test-results/mcts
+            xsltproc -o test-results/mcts/junit-tests.xml ctest-to-junit.xsl Testing/*/Test.xml
       - store_test_results:
-          path: build/Testing
+          path: build/test-results
   lint:
     docker:
       - image: konijnendijk/cpp-mcts-build:${CIRCLE_BRANCH}
