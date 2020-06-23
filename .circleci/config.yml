@@ -30,12 +30,6 @@ jobs:
             curl https://raw.githubusercontent.com/rpavlik/jenkins-ctest-plugin/master/ctest-to-junit.xsl -O
             mkdir -p test-results/mcts
             xsltproc -o test-results/mcts/junit-tests.xml ctest-to-junit.xsl Testing/*/Test.xml
-      - run:
-          name: Parse coverage data
-          working_directory: build
-          command: |
-            llvm-profdata merge test/default.profraw -o coverage.profdata
-            llvm-cov export --instr-profile coverage.profdata ./bin/cpp_mcts_tests > coverage-export.json
       - store_test_results:
           path: build/test-results
   lint:
@@ -49,6 +43,12 @@ jobs:
       - run:
           name: Clang tidy
           command: run-clang-tidy -extra-arg='-I/usr/lib/llvm-7/include/c++/v1' -checks='*' -header-filter='.*' -p build > clang-tidy-report
+      - run:
+          name: Parse coverage data
+          working_directory: build
+          command: |
+            llvm-profdata merge test/default.profraw -o coverage.profdata
+            llvm-cov export --instr-profile coverage.profdata ./bin/cpp_mcts_tests > coverage-export.json
       - sonarcloud/scan
 
 workflows:
