@@ -42,7 +42,7 @@ jobs:
           build_wrapper: build-wrapper-linux-x86-64 --out-dir build-wrapper-output
       - run:
           name: Clang tidy
-          command: run-clang-tidy -checks='*' -header-filter='.*' -p build > clang-tidy-report
+          command: run-clang-tidy -extra-arg='-I/usr/lib/llvm-7/include/c++/v1' -checks='*' -header-filter='.*' -p build > clang-tidy-report
       - sonarcloud/scan
 
 workflows:
