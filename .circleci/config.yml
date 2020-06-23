@@ -24,7 +24,7 @@ jobs:
       - checkout
       - conan_build
       - store_test_results:
-          path: Testing
+          path: build/Testing
   lint:
     docker:
       - image: konijnendijk/cpp-mcts-build:${CIRCLE_BRANCH}
@@ -32,10 +32,7 @@ jobs:
       - checkout
       - conan_build:
           build_type: Debug
-      - run:
-          # TODO fix
-          name: Build
-          command: build-wrapper-linux-x86-64 --out-dir build-wrapper-output ninja -C build
+          build_wrapper: build-wrapper-linux-x86-64 --out-dir build-wrapper-output
       - run:
           name: Clang tidy
           command: run-clang-tidy -checks='*' -header-filter='.*' -p build > clang-tidy-report
@@ -60,6 +57,9 @@ commands:
       build_type:
         type: string
         default: "Release"
+      build_wrapper:
+        type: string
+        default: ""
     steps:
       - restore_cache:
           keys:
@@ -80,4 +80,4 @@ commands:
       - run:
           name: Conan build
           working_directory: build
-          command: conan build ..
+          command: << parameters.build_wrapper >> conan build ..
