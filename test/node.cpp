@@ -18,15 +18,15 @@ TEST_CASE("nodes can have their scores updated") {
     REQUIRE(isnanf(node->getAvgScore()));
 
     SECTION("updating scores") {
-        node->update(0.5f);
+        node->update(0.5F);
 
         REQUIRE(node->getNumVisits() == 1);
-        REQUIRE(node->getAvgScore() == 0.5f);
+        REQUIRE(node->getAvgScore() == 0.5F);
 
-        node->update(1.0f);
+        node->update(1.0F);
 
         REQUIRE(node->getNumVisits() == 2);
-        REQUIRE(node->getAvgScore() == Approx(0.75f));
+        REQUIRE(node->getAvgScore() == Approx(0.75F));
     }
 
     delete node;

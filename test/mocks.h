@@ -7,12 +7,14 @@ class MockState: public State {
 };
 
 class MockAction: public Action<MockState> {
-    void execute(MockState *state) override {}
+    void execute(MockState *state) override {
+        // Mock action, stub implementation
+    }
 };
 
 class MockExpansionStrategy: public ExpansionStrategy<MockState, MockAction> {
 public:
-    explicit MockExpansionStrategy(MockState *state) : ExpansionStrategy(state) {}
+    explicit MockExpansionStrategy(MockState *mockState) : ExpansionStrategy(mockState) {}
 
 private:
 
