@@ -35,7 +35,7 @@ jobs:
           name: Parse coverage data
           working_directory: build
           command: |
-            llvm-profdata merge test/coverage.profraw -o coverage.profdata
+            llvm-profdata merge test/coverage-*.profraw -o coverage.profdata
             llvm-cov export --instr-profile coverage.profdata ./bin/cpp_mcts_tests > coverage-export.json
       - run:
           name: Clang tidy
@@ -86,7 +86,7 @@ commands:
           working_directory: build
           command: << parameters.build_wrapper >> conan build ..
           environment:
-            LLVM_PROFILE_FILE: "coverage.profraw"
+            LLVM_PROFILE_FILE: "coverage-%p.profraw"
       - run:
           name: Parse test results
           working_directory: build
