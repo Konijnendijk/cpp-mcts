@@ -189,5 +189,4 @@ public:
  */
 typedef MCTS<TestGameState, TestGameAction, TestGameExpansionStrategy, TestGamePlayoutStrategy> TestGameMCTS;
 
-static const int TEST_GAME_MCTS_ITERATIONS = 10000;
 #endif //CPP_MCTS_TESTGAME_H

@@ -2,6 +2,8 @@
 #include "catch2/catch.hpp"
 #include "TestGame.h"
 
+static const int TEST_GAME_MCTS_ITERATIONS = 10000;
+
 /**
  * Play a game with the given number of turns and maximum number to choose.
  * 
