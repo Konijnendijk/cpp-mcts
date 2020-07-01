@@ -18,6 +18,12 @@
 
 #include "mcts.h"
 
+/**
+ * @brief The game state.
+ *
+ * Stores the numbers chosen thus far and the parameters of the current game
+ * (total number of turns and maximum number that can be chosen each turn).
+ */
 class TestGameState : public State {
 private:
     // the number of times a number has to be chosen
@@ -31,27 +37,53 @@ private:
 public:
     TestGameState(uint numTurns, uint maxChoice) : numTurns(numTurns), maxChoice(maxChoice) {}
 
+    /**
+     * @brief Add a chosen number to the state, effectively advancing the game by one turn.
+     *
+     * @param choice the choice to add
+     */
     void addChoice(uint choice) {
         choices.push_back(choice);
     }
 
+    /**
+     * @brief Get the total number of turns in the game.
+     *
+     * Equal to the number of numbers to pick.
+     *
+     * @return the total number of turns
+     */
     uint getNumTurns() const {
         return numTurns;
     }
 
+    /**
+     * @brief Get the maximum number that can be chosen in the game.
+     *
+     * @return the maximum number, inclusive
+     */
     uint getMaxChoice() const {
         return maxChoice;
     }
 
+    /**
+     * @brief Get the numbers chosen thus far.
+     *
+     * @return the sequence of chosen numbers
+     */
     const std::vector<uint> &getChoices() const {
         return choices;
     }
 };
 
+/**
+ * @brief A number that can be chosen.
+ *
+ * Models the player choosing a certain number this turn.
+ */
 class TestGameAction : public Action<TestGameState> {
 private:
     uint choice = 0;
-
 public:
     TestGameAction() = default;
 
@@ -66,6 +98,9 @@ public:
     }
 };
 
+/**
+ * @brief Generates child states from the smallest possible choices to the largest.
+ */
 class TestGameExpansionStrategy : public ExpansionStrategy<TestGameState, TestGameAction> {
 private:
     uint currentChoice = 0;
@@ -82,6 +117,9 @@ public:
     }
 };
 
+/**
+ * @brief generate random numbers to choose given a state.
+ */
 class TestGamePlayoutStrategy : public PlayoutStrategy<TestGameState, TestGameAction> {
 private:
     std::mt19937 generator = std::mt19937(42);
@@ -96,6 +134,9 @@ public:
     }
 };
 
+/**
+ * @brief Reward 1/m points for each correct number in the sequence, where m is the length of the sequence.
+ */
 class TestGameScoring : public Scoring<TestGameState> {
 private:
     std::vector<uint> correctNumbers;
@@ -123,6 +164,9 @@ public:
     }
 };
 
+/**
+ * @brief Single player back propagation, returns the given score without modification.
+ */
 class TestGameBackPropagation : public Backpropagation<TestGameState> {
 public:
     float updateScore(TestGameState *state, float backpropScore) override {
@@ -130,6 +174,9 @@ public:
     }
 };
 
+/**
+ * @brief Checks if all numbers in the sequence have been chosen.
+ */
 class TestGameTerminationCheck : public TerminationCheck<TestGameState> {
 public:
     bool isTerminal(TestGameState *state) override {
@@ -137,6 +184,10 @@ public:
     }
 };
 
+/**
+ * @brief Convenience type definition for an MCTS agent configured with all the classes from this header.
+ */
 typedef MCTS<TestGameState, TestGameAction, TestGameExpansionStrategy, TestGamePlayoutStrategy> TestGameMCTS;
 
+static const int TEST_GAME_MCTS_ITERATIONS = 10000;
 #endif //CPP_MCTS_TESTGAME_H
