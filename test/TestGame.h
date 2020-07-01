@@ -16,7 +16,7 @@
 #include <vector>
 #include <chrono>
 
-#include "mcts.h"
+#include "mcts/mcts.h"
 
 /**
  * @brief The game state.

@@ -8,7 +8,7 @@
 #ifndef TTTMCTS_H_
 #define TTTMCTS_H_
 
-#include "mcts.h"
+#include "mcts/mcts.h"
 #include "TTTAction.h"
 #include "TTTStrategy.h"
 #include "Board.h"
