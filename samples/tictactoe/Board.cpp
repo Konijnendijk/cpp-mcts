@@ -1,5 +1,5 @@
 
-#include "Board.h"
+#include "Board.hpp"
 #include<cstring>
 #include <iostream>
 

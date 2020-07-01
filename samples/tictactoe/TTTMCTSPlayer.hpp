@@ -8,10 +8,10 @@
 #ifndef TTTMCTS_H_
 #define TTTMCTS_H_
 
-#include "mcts/mcts.h"
-#include "TTTAction.h"
-#include "TTTStrategy.h"
-#include "Board.h"
+#include "mcts/mcts.hpp"
+#include "TTTAction.hpp"
+#include "TTTStrategy.hpp"
+#include "Board.hpp"
 
 typedef MCTS<Board, TTTAction, TTTExpansionStrategy, TTTPlayoutStrategy> TTTMCTS;
 

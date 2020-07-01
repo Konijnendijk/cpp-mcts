@@ -1,4 +1,4 @@
-#include "mcts/mcts.h"
+#include "mcts/mcts.hpp"
 
 #ifndef BOARD_H
 #define BOARD_H

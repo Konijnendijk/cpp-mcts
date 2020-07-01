@@ -1,7 +1,7 @@
 #ifndef TTTACTIONGENERATOR_H_
 #define TTTACTIONGENERATOR_H_
 
-#include "TTTAction.h"
+#include "TTTAction.hpp"
 
 /**
  * Generates possible TTTActions

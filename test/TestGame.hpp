@@ -9,14 +9,14 @@
  *  - After m turns, the algorithm is rewarded 1/m points for each correct number
  */
 
-#ifndef CPP_MCTS_TESTGAME_H
-#define CPP_MCTS_TESTGAME_H
+#ifndef CPP_MCTS_TESTGAME_HPP
+#define CPP_MCTS_TESTGAME_HPP
 
 #include <random>
 #include <vector>
 #include <chrono>
 
-#include "mcts/mcts.h"
+#include "mcts/mcts.hpp"
 
 /**
  * @brief The game state.
@@ -189,4 +189,4 @@ public:
  */
 typedef MCTS<TestGameState, TestGameAction, TestGameExpansionStrategy, TestGamePlayoutStrategy> TestGameMCTS;
 
-#endif //CPP_MCTS_TESTGAME_H
+#endif //CPP_MCTS_TESTGAME_HPP

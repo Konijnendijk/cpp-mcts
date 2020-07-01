@@ -17,8 +17,8 @@
 #include <QGraphicsView>
 #include <QGraphicsItem>
 
-#include "Board.h"
-#include "TTTMCTSPlayer.h"
+#include "Board.hpp"
+#include "TTTMCTSPlayer.hpp"
 
 class GUI : public QWidget {
 	Q_OBJECT

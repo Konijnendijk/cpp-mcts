@@ -1,7 +1,7 @@
 #ifndef TTTACTION_H_
 #define TTTACTION_H_
 
-#include "Board.h"
+#include "Board.hpp"
 
 /**
  * Represents an Action that can be executed on a Board.

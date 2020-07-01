@@ -5,7 +5,7 @@
 
 #include <fstream>
 #include <vector>
-#include "mcts.h"
+#include "mcts.hpp"
 
 using namespace std;
 
