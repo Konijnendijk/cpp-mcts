@@ -570,11 +570,22 @@ public:
 	    this->minVisits = minVisits;
 	}
 
-	/**
-	 * Get the root of the MCTS tree. Useful for printing.
-	 * @see writeDotFile()
-	 * @return The root of the MCTS tree
-	 */
+    /**
+     * Set the minimum number of iterations required before calculateAction() returns.
+     *
+     * MCTS will go over time, set using setTime(int), if this number of iterations is not reached.
+     *
+     * @param minVisits The minimum number of iterations
+     */
+    void setMinIterations(int i) {
+        this->minIterations = i;
+    }
+
+    /**
+     * Get the root of the MCTS tree. Useful for printing.
+     * @see writeDotFile()
+     * @return The root of the MCTS tree
+     */
 	Node<T,A,E>* getRoot(){
 		return root;
 	}

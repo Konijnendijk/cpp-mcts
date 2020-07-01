@@ -48,7 +48,7 @@ public:
     }
 
 protected:
-    void print(ostream &strm) override {
+    void print(std::ostream &strm) override {
         for (auto& choice : choices) {
             strm << choice << "|";
         }
@@ -74,7 +74,7 @@ public:
     }
 
 protected:
-    void print(ostream &strm) override {
+    void print(std::ostream &strm) override {
         strm << choice;
     }
 };
@@ -97,14 +97,16 @@ public:
 
 class TestGamePlayoutStrategy : public PlayoutStrategy<TestGameState, TestGameAction> {
 private:
-    std::default_random_engine generator;
+    std::mt19937 generator;
     std::uniform_int_distribution<uint> distribution;
 
 public:
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "cert-msc51-cpp"
     explicit TestGamePlayoutStrategy(TestGameState *state) : PlayoutStrategy(state),
-                                                             generator(
-                                                                     std::chrono::system_clock::now().time_since_epoch().count()),
+                                                             generator(42), // We want tests to be deterministic, so pick a constant seed
                                                              distribution(0, state->getMaxChoice()) {}
+#pragma clang diagnostic pop
 
     void generateRandom(TestGameAction *action) override {
         action->setChoice(distribution(generator));
