@@ -1,5 +1,5 @@
-#ifndef TTTACTION_H_
-#define TTTACTION_H_
+#ifndef CPP_MCTS_TTTACTION_HPP
+#define CPP_MCTS_TTTACTION_HPP
 
 #include "Board.hpp"
 
@@ -56,4 +56,4 @@ public:
 	}
 };
 
-#endif /* TTTACTION_H_ */
+#endif //CPP_MCTS_TTTACTION_HPP

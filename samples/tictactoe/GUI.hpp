@@ -5,8 +5,8 @@
  *      Author: geert
  */
 
-#ifndef GUI_H_
-#define GUI_H_
+#ifndef CPP_MCTS_GUI_HPP
+#define CPP_MCTS_GUI_HPP
 
 #include <QWidget>
 #include <QPushButton>
@@ -75,6 +75,4 @@ private slots:
 	void movePlayed();
 };
 
-
-
-#endif /* GUI_H_ */
+#endif //CPP_MCTS_GUI_HPP

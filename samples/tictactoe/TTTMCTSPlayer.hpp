@@ -5,8 +5,8 @@
  *      Author: geert
  */
 
-#ifndef TTTMCTS_H_
-#define TTTMCTS_H_
+#ifndef CPP_MCTS_TTTMCTS_HPP
+#define CPP_MCTS_TTTMCTS_HPP
 
 #include "mcts/mcts.hpp"
 #include "TTTAction.hpp"
@@ -36,4 +36,4 @@ private:
 	TTTMCTS* createMCTS();
 };
 
-#endif /* TTTMCTS_H_ */
+#endif //CPP_MCTS_TTTMCTS_HPP

@@ -6,8 +6,8 @@
 #include <chrono>
 #include <cstdlib>
 
-#ifndef MCTS_H
-#define MCTS_H
+#ifndef CPP_MCTS_MCTS_HPP
+#define CPP_MCTS_MCTS_HPP
 
 using namespace std::chrono;
 
@@ -758,4 +758,4 @@ private:
 	}
 };
 
-#endif
+#endif //CPP_MCTS_MCTS_HPP
