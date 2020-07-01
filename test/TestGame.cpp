@@ -13,11 +13,16 @@ float playGame(uint numTurns, uint maxChoice, int seed) {
         entry = distribution(generator);
     }
 
+
     for (int i = 0; i < state->getNumTurns(); i++) {
-        TestGameMCTS mcts(new TestGameState(*state),
-                          new TestGameBackPropagation(),
-                          new TestGameTerminationCheck,
-                          new TestGameScoring(expectedSequence));
+        auto copiedState = new TestGameState(*state);
+        auto propagation = new TestGameBackPropagation();
+        auto terminationCheck = new TestGameTerminationCheck();
+        auto scoring = new TestGameScoring(expectedSequence);
+        TestGameMCTS mcts(copiedState,
+                          propagation,
+                          terminationCheck,
+                          scoring);
         // Make MCTS deterministic by setting a required number of iterations instead of a time
         mcts.setTime(0);
         mcts.setMinIterations(10000);

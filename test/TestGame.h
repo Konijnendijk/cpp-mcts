@@ -46,14 +46,6 @@ public:
     const std::vector<uint> &getChoices() const {
         return choices;
     }
-
-protected:
-    void print(std::ostream &strm) override {
-        for (auto& choice : choices) {
-            strm << choice << "|";
-        }
-    }
-
 };
 
 class TestGameAction : public Action<TestGameState> {
@@ -71,11 +63,6 @@ public:
 
     void setChoice(uint newChoice) {
         this->choice = newChoice;
-    }
-
-protected:
-    void print(std::ostream &strm) override {
-        strm << choice;
     }
 };
 
@@ -97,16 +84,12 @@ public:
 
 class TestGamePlayoutStrategy : public PlayoutStrategy<TestGameState, TestGameAction> {
 private:
-    std::mt19937 generator;
+    std::mt19937 generator = std::mt19937(42);
     std::uniform_int_distribution<uint> distribution;
 
 public:
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "cert-msc51-cpp"
     explicit TestGamePlayoutStrategy(TestGameState *state) : PlayoutStrategy(state),
-                                                             generator(42), // We want tests to be deterministic, so pick a constant seed
                                                              distribution(0, state->getMaxChoice()) {}
-#pragma clang diagnostic pop
 
     void generateRandom(TestGameAction *action) override {
         action->setChoice(distribution(generator));
@@ -136,7 +119,7 @@ public:
                 difference++;
             }
         }
-        return (float) (choices.size() - difference) / choices.size();
+        return (float) (choices.size() - difference) / (float) choices.size();
     }
 };
 
