@@ -36,7 +36,7 @@ jobs:
           working_directory: build
           command: |
             llvm-profdata merge test/coverage-*.profraw -o coverage.profdata
-            llvm-cov export --instr-profile coverage.profdata ./bin/cpp_mcts_tests > coverage-export.json
+            llvm-cov show --instr-profile coverage.profdata ./bin/cpp_mcts_tests > coverage-export.txt
       - run:
           name: Clang tidy
           command: run-clang-tidy -extra-arg='-I/usr/lib/llvm-7/include/c++/v1' -checks='*' -header-filter='.*' -p build > clang-tidy-report
