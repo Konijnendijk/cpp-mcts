@@ -707,24 +707,23 @@ private:
 	}
 	/** Simulate until the stopping condition is reached. */
 	void simulate(Node<T,A,E>* node){
-		T* state=new T(*node->getData());
+		T state(*node->getData());
 		std::vector<Action<T>*> actions;
 
         A action;
 		// Check if the end of the game is reached and generate the next state if not
-		while (!termination->isTerminal(state))
+		while (!termination->isTerminal(&state))
 		{
-			PlayoutStrategy<T,A>* playout=new P(state);
-			playout->generateRandom(&action);
-			action.execute(state);
+			P playout(&state);
+			playout.generateRandom(&action);
+			action.execute(&state);
 			#ifdef PROG_HIST
 			actions.push_back(new A(action));
             #endif
-			delete playout;
 		}
 
         // Score the leaf node (end of the game)
-		float s =scoring->score(state);
+		float s =scoring->score(&state);
 
 		#ifdef PROG_HIST
 		// Update progressive history statistics
@@ -745,8 +744,6 @@ private:
         #endif
 
 		backProp(node, s);
-		delete state;
-
 	}
 	/** Backpropagate a score through the tree */
 	void backProp(Node<T,A,E>* node, float score){
