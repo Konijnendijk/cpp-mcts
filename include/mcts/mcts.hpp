@@ -6,8 +6,8 @@
 #include <chrono>
 #include <cstdlib>
 
-#ifndef MCTS_H
-#define MCTS_H
+#ifndef CPP_MCTS_MCTS_HPP
+#define CPP_MCTS_MCTS_HPP
 
 using namespace std::chrono;
 
@@ -570,11 +570,22 @@ public:
 	    this->minVisits = minVisits;
 	}
 
-	/**
-	 * Get the root of the MCTS tree. Useful for printing.
-	 * @see writeDotFile()
-	 * @return The root of the MCTS tree
-	 */
+    /**
+     * Set the minimum number of iterations required before calculateAction() returns.
+     *
+     * MCTS will go over time, set using setTime(int), if this number of iterations is not reached.
+     *
+     * @param minVisits The minimum number of iterations
+     */
+    void setMinIterations(int i) {
+        this->minIterations = i;
+    }
+
+    /**
+     * Get the root of the MCTS tree. Useful for printing.
+     * @see writeDotFile()
+     * @return The root of the MCTS tree
+     */
 	Node<T,A,E>* getRoot(){
 		return root;
 	}
@@ -744,4 +755,4 @@ private:
 	}
 };
 
-#endif
+#endif //CPP_MCTS_MCTS_HPP

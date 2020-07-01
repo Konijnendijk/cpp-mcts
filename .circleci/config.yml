@@ -1,0 +1,98 @@
+version: 2.1
+
+orbs:
+  sonarcloud: sonarsource/sonarcloud@1.0.1
+
+jobs:
+  build_agent:
+    docker:
+      - image: circleci/buildpack-deps:buster
+    steps:
+      - checkout
+      - setup_remote_docker:
+          version: 19.03.8
+      - run:
+          name: Build and push build agent docker image
+          command: |
+            DOCKER_BUILDKIT=1 docker build --build-arg BUILDKIT_INLINE_CACHE=1 --cache-from=konijnendijk/cpp-mcts-build:${CIRCLE_BRANCH} --cache-from=konijnendijk/cpp-mcts-build:master -t konijnendijk/cpp-mcts-build:${CIRCLE_BRANCH} build-agent
+            echo "${DOCKERHUB_PASS}" | docker login -u "${DOCKERHUB_USERNAME}" --password-stdin
+            docker push konijnendijk/cpp-mcts-build:${CIRCLE_BRANCH}
+  build:
+    docker:
+      - image: konijnendijk/cpp-mcts-build:${CIRCLE_BRANCH}
+    steps:
+      - checkout
+      - conan_build
+  lint:
+    docker:
+      - image: konijnendijk/cpp-mcts-build:${CIRCLE_BRANCH}
+    steps:
+      - checkout
+      - conan_build:
+          build_type: Debug
+          build_wrapper: build-wrapper-linux-x86-64 --out-dir build-wrapper-output
+      - run:
+          name: Parse coverage data
+          working_directory: build
+          command: |
+            llvm-profdata merge test/coverage-*.profraw -o coverage.profdata
+            llvm-cov show --instr-profile coverage.profdata ./bin/cpp_mcts_tests > coverage-export.txt
+      - run:
+          name: Clang tidy
+          command: run-clang-tidy -extra-arg='-I/usr/lib/llvm-7/include/c++/v1' -checks='*' -header-filter='.*' -p build > clang-tidy-report
+      - sonarcloud/scan
+
+workflows:
+  version: 2.1
+  build:
+    jobs:
+      - build_agent
+      - build:
+          requires:
+            - build_agent
+      - lint:
+          requires:
+            - build
+
+commands:
+  conan_build:
+    description: "Generate makefiles in a build directory using CMake"
+    parameters:
+      build_type:
+        type: string
+        default: "Release"
+      build_wrapper:
+        type: string
+        default: ""
+    steps:
+      - restore_cache:
+          keys:
+            - conan-<< parameters.build_type >>-{{ checksum "conanfile.py" }}
+            - conan-<< parameters.build_type >>
+      - run:
+          name: Conan add Bincrafters remote
+          command: conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan
+      - run:
+          name: Conan install
+          working_directory: build
+          command: conan install --build missing -e CC=clang -e CXX=clang++ -s build_type=<< parameters.build_type >> -s compiler=clang -s compiler.version=7.0 -s compiler.libcxx=libc++ ..
+      - save_cache:
+          key: conan-<< parameters.build_type >>-{{ checksum "conanfile.py" }}
+          when: always
+          paths:
+            - /root/.conan/data
+      - run:
+          name: Conan build
+          working_directory: build
+          command: << parameters.build_wrapper >> conan build ..
+          environment:
+            LLVM_PROFILE_FILE: "coverage-%p.profraw"
+      - run:
+          name: Parse test results
+          working_directory: build
+          command: |
+            curl https://raw.githubusercontent.com/rpavlik/jenkins-ctest-plugin/master/ctest-to-junit.xsl -O
+            mkdir -p test-results/mcts
+            xsltproc -o test-results/mcts/junit-tests.xml ctest-to-junit.xsl Testing/*/Test.xml
+      - store_test_results:
+          path: build/test-results
