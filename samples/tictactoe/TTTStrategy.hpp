@@ -1,7 +1,7 @@
-#ifndef TTTACTIONGENERATOR_H_
-#define TTTACTIONGENERATOR_H_
+#ifndef CPP_MCTS_TTTACTIONGENERATOR_HPP
+#define CPP_MCTS_TTTACTIONGENERATOR_HPP
 
-#include "TTTAction.h"
+#include "TTTAction.hpp"
 
 /**
  * Generates possible TTTActions
@@ -40,4 +40,4 @@ public:
 };
 
 
-#endif /* TTTACTIONGENERATOR_H_ */
+#endif //CPP_MCTS_TTTACTIONGENERATOR_HPP

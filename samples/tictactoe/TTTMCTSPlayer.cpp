@@ -5,7 +5,7 @@
  *      Author: geert
  */
 
-#include "TTTMCTSPlayer.h"
+#include "TTTMCTSPlayer.hpp"
 
 class TTTBackpropagation : public Backpropagation<Board> {
 	Player player;

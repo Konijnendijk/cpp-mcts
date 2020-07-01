@@ -1,11 +1,11 @@
 
 
-#ifndef GRAPHVIZ_H
-#define GRAPHVIZ_H
+#ifndef CPP_MCTS_GRAPHVIZ_HPP
+#define CPP_MCTS_GRAPHVIZ_HPP
 
 #include <fstream>
 #include <vector>
-#include "mcts.h"
+#include "mcts.hpp"
 
 using namespace std;
 
@@ -47,4 +47,4 @@ void writeDotFile(Node<T, A, G>* root, const char* filename){
 	dot.close();
 }
 
-#endif
+#endif //CPP_MCTS_GRAPHVIZ_HPP

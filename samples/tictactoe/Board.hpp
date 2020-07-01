@@ -1,7 +1,7 @@
-#include "mcts.h"
+#include "mcts/mcts.hpp"
 
-#ifndef BOARD_H
-#define BOARD_H
+#ifndef CPP_MCTS_BOARD_HPP
+#define CPP_MCTS_BOARD_HPP
 
 enum Player {CROSS, CIRCLE, NONE};
 
@@ -62,5 +62,5 @@ public:
 };
 
 
-#endif
+#endif //CPP_MCTS_BOARD_HPP
 

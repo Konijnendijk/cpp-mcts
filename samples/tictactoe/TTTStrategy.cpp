@@ -1,4 +1,4 @@
-#include "TTTStrategy.h"
+#include "TTTStrategy.hpp"
 
 TTTExpansionStrategy::TTTExpansionStrategy(Board* state) :
 		ExpansionStrategy<Board, TTTAction>(state), currentX(0), currentY(0) {

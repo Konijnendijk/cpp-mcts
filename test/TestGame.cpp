@@ -1,6 +1,6 @@
 
 #include "catch2/catch.hpp"
-#include "TestGame.h"
+#include "TestGame.hpp"
 
 static const int TEST_GAME_MCTS_ITERATIONS = 10000;
 

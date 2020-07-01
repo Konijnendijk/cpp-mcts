@@ -9,8 +9,8 @@
 #include <QTimer>
 #include <QPen>
 
-#include "GUI.h"
-#include "TTTAction.h"
+#include "GUI.hpp"
+#include "TTTAction.hpp"
 
 GUI::GUI(QWidget* parent) :
 		QWidget(parent), board(nullptr) {

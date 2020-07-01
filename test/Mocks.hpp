@@ -1,6 +1,6 @@
 
-#ifndef CPP_MCTS_MOCKS_H
-#define CPP_MCTS_MOCKS_H
+#ifndef CPP_MCTS_MOCKS_HPP
+#define CPP_MCTS_MOCKS_HPP
 
 class MockState: public State {
 
@@ -27,4 +27,4 @@ private:
     }
 };
 
-#endif //CPP_MCTS_MOCKS_H
+#endif //CPP_MCTS_MOCKS_HPP

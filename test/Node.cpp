@@ -1,7 +1,7 @@
 
 #include "catch2/catch.hpp"
-#include "mcts.h"
-#include "Mocks.h"
+#include "mcts/mcts.hpp"
+#include "Mocks.hpp"
 
 typedef Node<MockState, MockAction, MockExpansionStrategy> MockNode;
 

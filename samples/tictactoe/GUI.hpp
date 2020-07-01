@@ -5,8 +5,8 @@
  *      Author: geert
  */
 
-#ifndef GUI_H_
-#define GUI_H_
+#ifndef CPP_MCTS_GUI_HPP
+#define CPP_MCTS_GUI_HPP
 
 #include <QWidget>
 #include <QPushButton>
@@ -17,8 +17,8 @@
 #include <QGraphicsView>
 #include <QGraphicsItem>
 
-#include "Board.h"
-#include "TTTMCTSPlayer.h"
+#include "Board.hpp"
+#include "TTTMCTSPlayer.hpp"
 
 class GUI : public QWidget {
 	Q_OBJECT
@@ -75,6 +75,4 @@ private slots:
 	void movePlayed();
 };
 
-
-
-#endif /* GUI_H_ */
+#endif //CPP_MCTS_GUI_HPP
