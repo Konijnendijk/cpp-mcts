@@ -2,6 +2,8 @@
 #ifndef CPP_MCTS_MOCKS_HPP
 #define CPP_MCTS_MOCKS_HPP
 
+#include "mcts/mcts.hpp"
+
 class MockState : public State {
 };
 
