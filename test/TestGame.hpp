@@ -1,6 +1,7 @@
 
 /** @file test_game.h
- * @brief Implements a simple game for testing purposes. The goal of the game is to find a sequence of numbers (like solving a combination lock).
+ * @brief Implements a simple game for testing purposes. The goal of the game is to find a sequence of numbers (like
+ * solving a combination lock).
  *
  * The game is single-player and has the following rules:
  *  - Each turn the player must choose a number between 0 to n
@@ -12,9 +13,9 @@
 #ifndef CPP_MCTS_TESTGAME_HPP
 #define CPP_MCTS_TESTGAME_HPP
 
+#include <chrono>
 #include <random>
 #include <vector>
-#include <chrono>
 
 #include "mcts/mcts.hpp"
 
@@ -35,16 +36,18 @@ private:
     std::vector<uint> choices;
 
 public:
-    TestGameState(uint numTurns, uint maxChoice) : numTurns(numTurns), maxChoice(maxChoice) {}
+    TestGameState(uint numTurns, uint maxChoice)
+        : numTurns(numTurns)
+        , maxChoice(maxChoice)
+    {
+    }
 
     /**
      * @brief Add a chosen number to the state, effectively advancing the game by one turn.
      *
      * @param choice the choice to add
      */
-    void addChoice(uint choice) {
-        choices.push_back(choice);
-    }
+    void addChoice(uint choice) { choices.push_back(choice); }
 
     /**
      * @brief Get the total number of turns in the game.
@@ -53,27 +56,21 @@ public:
      *
      * @return the total number of turns
      */
-    uint getNumTurns() const {
-        return numTurns;
-    }
+    uint getNumTurns() const { return numTurns; }
 
     /**
      * @brief Get the maximum number that can be chosen in the game.
      *
      * @return the maximum number, inclusive
      */
-    uint getMaxChoice() const {
-        return maxChoice;
-    }
+    uint getMaxChoice() const { return maxChoice; }
 
     /**
      * @brief Get the numbers chosen thus far.
      *
      * @return the sequence of chosen numbers
      */
-    const std::vector<uint> &getChoices() const {
-        return choices;
-    }
+    const std::vector<uint>& getChoices() const { return choices; }
 };
 
 /**
@@ -84,18 +81,18 @@ public:
 class TestGameAction : public Action<TestGameState> {
 private:
     uint choice = 0;
+
 public:
     TestGameAction() = default;
 
-    explicit TestGameAction(uint choice) : choice(choice) {}
-
-    void execute(TestGameState *state) override {
-        state->addChoice(choice);
+    explicit TestGameAction(uint choice)
+        : choice(choice)
+    {
     }
 
-    void setChoice(uint newChoice) {
-        this->choice = newChoice;
-    }
+    void execute(TestGameState* state) override { state->addChoice(choice); }
+
+    void setChoice(uint newChoice) { this->choice = newChoice; }
 };
 
 /**
@@ -106,15 +103,14 @@ private:
     uint currentChoice = 0;
 
 public:
-    explicit TestGameExpansionStrategy(TestGameState *mockState) : ExpansionStrategy(mockState) {}
-
-    TestGameAction *generateNext() override {
-        return new TestGameAction(currentChoice++);
+    explicit TestGameExpansionStrategy(TestGameState* mockState)
+        : ExpansionStrategy(mockState)
+    {
     }
 
-    bool canGenerateNext() override {
-        return currentChoice <= state->getMaxChoice();
-    }
+    TestGameAction* generateNext() override { return new TestGameAction(currentChoice++); }
+
+    bool canGenerateNext() override { return currentChoice <= state->getMaxChoice(); }
 };
 
 /**
@@ -126,12 +122,13 @@ private:
     std::uniform_int_distribution<uint> distribution;
 
 public:
-    explicit TestGamePlayoutStrategy(TestGameState *state) : PlayoutStrategy(state),
-                                                             distribution(0, state->getMaxChoice()) {}
-
-    void generateRandom(TestGameAction *action) override {
-        action->setChoice(distribution(generator));
+    explicit TestGamePlayoutStrategy(TestGameState* state)
+        : PlayoutStrategy(state)
+        , distribution(0, state->getMaxChoice())
+    {
     }
+
+    void generateRandom(TestGameAction* action) override { action->setChoice(distribution(generator)); }
 };
 
 /**
@@ -142,7 +139,10 @@ private:
     std::vector<uint> correctNumbers;
 
 public:
-    explicit TestGameScoring(std::vector<uint> correctNumbers) : correctNumbers(std::move(correctNumbers)) {}
+    explicit TestGameScoring(std::vector<uint> correctNumbers)
+        : correctNumbers(std::move(correctNumbers))
+    {
+    }
 
     /**
      * Score the chosen numbers in the sequence.
@@ -152,15 +152,16 @@ public:
      * @param state the state to score
      * @return the score
      */
-    float score(TestGameState *state) override {
-        const auto &choices = state->getChoices();
+    float score(TestGameState* state) override
+    {
+        const auto& choices = state->getChoices();
         uint difference = 0;
         for (int i = 0; i < choices.size(); i++) {
             if (choices[i] != correctNumbers[i]) {
                 difference++;
             }
         }
-        return (float) (choices.size() - difference) / (float) choices.size();
+        return (float)(choices.size() - difference) / (float)choices.size();
     }
 };
 
@@ -169,9 +170,7 @@ public:
  */
 class TestGameBackPropagation : public Backpropagation<TestGameState> {
 public:
-    float updateScore(TestGameState *state, float backpropScore) override {
-        return backpropScore;
-    }
+    float updateScore(TestGameState* state, float backpropScore) override { return backpropScore; }
 };
 
 /**
@@ -179,9 +178,7 @@ public:
  */
 class TestGameTerminationCheck : public TerminationCheck<TestGameState> {
 public:
-    bool isTerminal(TestGameState *state) override {
-        return state->getChoices().size() == state->getNumTurns();
-    }
+    bool isTerminal(TestGameState* state) override { return state->getChoices().size() == state->getNumTurns(); }
 };
 
 /**
@@ -189,4 +186,4 @@ public:
  */
 typedef MCTS<TestGameState, TestGameAction, TestGameExpansionStrategy, TestGamePlayoutStrategy> TestGameMCTS;
 
-#endif //CPP_MCTS_TESTGAME_HPP
+#endif // CPP_MCTS_TESTGAME_HPP

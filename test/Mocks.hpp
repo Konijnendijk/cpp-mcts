@@ -2,29 +2,27 @@
 #ifndef CPP_MCTS_MOCKS_HPP
 #define CPP_MCTS_MOCKS_HPP
 
-class MockState: public State {
-
+class MockState : public State {
 };
 
-class MockAction: public Action<MockState> {
-    void execute(MockState *state) override {
+class MockAction : public Action<MockState> {
+    void execute(MockState* state) override
+    {
         // Mock action, stub implementation
     }
 };
 
-class MockExpansionStrategy: public ExpansionStrategy<MockState, MockAction> {
+class MockExpansionStrategy : public ExpansionStrategy<MockState, MockAction> {
 public:
-    explicit MockExpansionStrategy(MockState *mockState) : ExpansionStrategy(mockState) {}
+    explicit MockExpansionStrategy(MockState* mockState)
+        : ExpansionStrategy(mockState)
+    {
+    }
 
 private:
+    MockAction* generateNext() override { return nullptr; }
 
-    MockAction *generateNext() override {
-        return nullptr;
-    }
-
-    bool canGenerateNext() override {
-        return false;
-    }
+    bool canGenerateNext() override { return false; }
 };
 
-#endif //CPP_MCTS_MOCKS_HPP
+#endif // CPP_MCTS_MOCKS_HPP

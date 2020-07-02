@@ -1,23 +1,26 @@
 
+#include "Mocks.hpp"
 #include "catch2/catch.hpp"
 #include "mcts/mcts.hpp"
-#include "Mocks.hpp"
 
 typedef Node<MockState, MockAction, MockExpansionStrategy> MockNode;
 
-MockNode* buildMockNode(unsigned int id, MockNode* parent) {
+MockNode* buildMockNode(unsigned int id, MockNode* parent)
+{
     auto state = new MockState();
     auto action = new MockAction();
     return new MockNode(id, state, parent, action);
 }
 
-TEST_CASE("nodes can have their scores updated") {
+TEST_CASE("nodes can have their scores updated")
+{
     auto node = buildMockNode(1, nullptr);
 
     REQUIRE(node->getNumVisits() == 0);
     REQUIRE(isnanf(node->getAvgScore()));
 
-    SECTION("updating scores") {
+    SECTION("updating scores")
+    {
         node->update(0.5F);
 
         REQUIRE(node->getNumVisits() == 1);
@@ -32,17 +35,19 @@ TEST_CASE("nodes can have their scores updated") {
     delete node;
 }
 
-TEST_CASE("nodes can build a tree") {
+TEST_CASE("nodes can build a tree")
+{
     auto root = buildMockNode(1, nullptr);
     auto childA = buildMockNode(2, root);
     auto childB = buildMockNode(3, root);
 
     REQUIRE(root->getChildren().empty());
 
-    SECTION("Add children") {
+    SECTION("Add children")
+    {
         root->addChild(childA);
         root->addChild(childB);
 
-        REQUIRE(root->getChildren() == std::vector<MockNode*>{childA, childB});
+        REQUIRE(root->getChildren() == std::vector<MockNode*> { childA, childB });
     }
 }
