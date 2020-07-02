@@ -31,7 +31,7 @@ jobs:
       - run:
           name: Check Formatting
           command: |
-            git-clang-format --quiet --style file --diff master HEAD > /tmp/formatting.diff
+            git-clang-format --quiet --style file --diff master ${CIRCLE_SHA1} > /tmp/formatting.diff
             if [ -s /tmp/formatting.diff ]
             then
               echo "Code is not properly formatted:"
