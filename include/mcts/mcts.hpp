@@ -70,46 +70,8 @@ public:
 	 */
 	virtual void execute(T* state)=0;
 
-	/**
-	 * @brief Calculate a hash of this action
-	 *
-	 * @noteImplementing this is only required when using progressive history. See MCTS for more details.
-	 * @return The unique (over all possible actions in the game) hash of this action
-	 */
-	virtual size_t hash() {return 0;};
-
-	/**
-	 * @brief Returns true when this Action equals the given action
-	 *
-     * @note Implementing this is only required when using progressive history. See MCTS for more details.
-	 * @return True if this and other are equal, false if not
-	 */
-	virtual bool equals(Action<T>* other) { return this==other; };
-
 	virtual ~Action(){};
 };
-
-namespace std {
-    /**
-     * Hash specialization for Action pointers used in the Progressive History technique in MCTS.
-     */
-    template<class T>
-    class hash<Action<T>*>{
-    public:
-        size_t operator() (Action<T>* const & a) const {
-            return a->hash();
-        }
-    };
-
-    /**
-     * equal_to specialization for Action pointers used in the Progressive History technique in MCTS.
-     */
-    template<class T>
-    class equal_to<Action<T>*>{
-    public :
-        bool operator() (Action<T>* const & x, Action<T>* const & y) const {return x->equals(y);}
-    };
-}
 
 /**
  * @brief Base class for strategies
@@ -452,11 +414,6 @@ class MCTS {
 
 	Node<T,A,E>* root;
 
-	/** Map holding the information for use in the Progressive History technique.
-	 * The value holds the number of times an Action was done and the score that action led to.
-	 */
-	std::unordered_map<Action<T>*, std::pair<int, float>> history;
-
 	/** The time MCTS is allowed to search */
 	milliseconds time;
 
@@ -478,22 +435,16 @@ class MCTS {
 	/** Variable to assign IDs to a node */
 	unsigned int currentNodeID;
 
-	/*
-	 * Debugging variables
-	 */
-	microseconds selectTime, expandTime,simulateTime;
-	long iterations;
-
+	/** The number of search iterations so far */
+	unsigned int iterations = 0;
 public:
 	/**
 	 * @note backprop, termination and scoring will be deleted by this MCTS instance
 	 */
 	MCTS(T* rootData, Backpropagation<T>* backprop, TerminationCheck<T>* termination, Scoring<T>* scoring) :
 	    backprop(backprop), termination(termination), scoring(scoring), root(new Node<T,A,E>(0, rootData, 0, new A())),
-	        history(), time(milliseconds(DEFAULT_TIME)), minIterations(DEFAULT_MIN_ITERATIONS), C(DEFAULT_C),
-	            W(DEFAULT_W), minT(DEFAULT_MIN_T), minVisits(DEFAULT_MIN_VISITS), currentNodeID(0),
-	                selectTime(microseconds::zero()), expandTime(microseconds::zero()),
-	                    simulateTime(microseconds::zero()), iterations(0) {}
+	        time(milliseconds(DEFAULT_TIME)), minIterations(DEFAULT_MIN_ITERATIONS), C(DEFAULT_C),
+	            W(DEFAULT_W), minT(DEFAULT_MIN_T), minVisits(DEFAULT_MIN_VISITS), currentNodeID(0){}
 
 	/**
 	 * @brief Runs the MCTS algorithm and searches for the best Action
@@ -501,15 +452,7 @@ public:
 	 * @return The Action found by MCTS
 	 */
 	A* calculateAction(){
-
-		system_clock::time_point old=system_clock::now();
-
 		search();
-
-        #ifdef _DEBUG
-		std::cerr << iterations << " iterations in " << duration_cast<milliseconds>(system_clock::now()-old).count() << "ms" << std::endl;
-		std::cerr << "Average select:" << (float)(selectTime.count()/1000)/iterations/1000 << "ms Average expand:" << (float)(expandTime.count())/iterations/1000 << "ms Average simulate:" << (float)(simulateTime.count())/iterations/1000 << "ms" << std::endl;
-		#endif
 
 		// Select the Action with the best score
 		Node<T,A,E>* best=nullptr;
@@ -523,9 +466,6 @@ public:
 				best=children[i];
 			}
 		}
-
-        for (auto kv : history)
-            std::cout << kv.first->hash() << " " << kv.second.first << std::endl;
 
 		return new A(*best->getAction());
 	}
@@ -591,9 +531,6 @@ public:
 	}
 
 	~MCTS(){
-		for (auto kv : history)
-			delete kv.first;
-
 		delete root;
 		delete backprop;
 		delete termination;
@@ -603,18 +540,7 @@ private:
 	void search(){
 		system_clock::time_point old=system_clock::now();
 
-
-		#ifdef _DEBUG
-		system_clock::time_point temp;
-		#endif
-
 		while (duration_cast<milliseconds>(system_clock::now()-old)<time || iterations < minIterations){
-
-			#ifdef _DEBUG
-			temp=system_clock::now();
-			#endif
-
-
 			iterations++;
 
 			/**
@@ -629,11 +555,6 @@ private:
 				continue;
 			}
 
-			#ifdef _DEBUG
-			selectTime+=duration_cast<microseconds>(system_clock::now()-temp);
-			temp=system_clock::now();
-			#endif
-
 			/**
 			 * Expansion
 			 */
@@ -646,19 +567,10 @@ private:
 				expanded=selected;
 			}
 
-			#ifdef _DEBUG
-			expandTime+=duration_cast<microseconds>(system_clock::now()-temp);
-			temp=system_clock::now();
-			#endif
-
 			/**
 			 * Simulation
 			 */
 			simulate(expanded);
-
-			#ifdef _DEBUG
-			simulateTime+=duration_cast<microseconds>(system_clock::now()-temp);
-			#endif
 		}
 	}
 
@@ -675,17 +587,7 @@ private:
 		
 		// Use the UCT formula for selection
 		for (Node<T,A,E>* n : children){
-
-
 			float score=n->getAvgScore()+C*(float)sqrt(log(node->getNumVisits())/n->getNumVisits());
-
-			#ifdef PROG_HIST
-			auto stats=history.find(n->getAction());
-			if (stats!=history.end()){
-				score+=stats->second.second/stats->second.first*W/((1-n->getAvgScore())*n->getNumVisits()+1);
-			}
-            #endif
-
 
 			if (score>bestScore)
 			{
@@ -717,31 +619,10 @@ private:
 			P playout(&state);
 			playout.generateRandom(&action);
 			action.execute(&state);
-			#ifdef PROG_HIST
-			actions.push_back(new A(action));
-            #endif
 		}
 
         // Score the leaf node (end of the game)
 		float s =scoring->score(&state);
-
-		#ifdef PROG_HIST
-		// Update progressive history statistics
-		for (Action<T>* a : actions){
-			auto i = history.find(a);
-			if (i!=history.end()){
-				std::pair<int, float> stats = i->second;
-				stats.first++;
-				stats.second+=s;
-				i->second=stats;
-
-				delete a;
-			}
-			else{
-				history[a]=std::pair<int, float>(1,s);
-			}
-		}
-        #endif
 
 		backProp(node, s);
 	}
