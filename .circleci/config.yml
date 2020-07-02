@@ -28,6 +28,11 @@ jobs:
       - image: konijnendijk/cpp-mcts-build:${CIRCLE_BRANCH}
     steps:
       - checkout
+      - run:
+          name: Check Formatting
+          command: |
+            git-clang-format --style file --diff HEAD^ HEAD > /tmp/formatting.diff
+            [ ! -s /tmp/formatting.diff ]
       - conan_build:
           build_type: Debug
           build_wrapper: build-wrapper-linux-x86-64 --out-dir build-wrapper-output
