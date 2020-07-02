@@ -30,17 +30,8 @@ public:
 	int getY() { return y; }
 	void setY(int y) { this->y = y; }
 
-	size_t hash() override{
-		return x ^ y;
-	}
-
 	void print (std::ostream &strm) override {
 		strm << "Place at (" << x << "," << y << ")";
-	}
-
-	bool equals (Action* other) override{
-		TTTAction* a = static_cast<TTTAction*>(other);
-		return *this==*a;
 	}
 
 	bool operator== (const TTTAction& a) {
