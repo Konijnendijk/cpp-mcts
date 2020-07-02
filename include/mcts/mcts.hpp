@@ -415,25 +415,25 @@ class MCTS {
 	Node<T,A,E>* root;
 
 	/** The time MCTS is allowed to search */
-	milliseconds time;
+	milliseconds time = milliseconds(DEFAULT_TIME);
 
 	/** MCTS can go over time if it has less than this amount of iterations */
-	int minIterations;
+	int minIterations = DEFAULT_MIN_ITERATIONS;
 
 	/** Tunable bias parameter for node selection */
-	float C;
+	float C = DEFAULT_C;
 
 	/** Tunable parameter determining the influence of history */
-	float W;
+	float W = DEFAULT_W;
 
 	/** Minimum number of visits until a Node will be expanded */
-	int minT;
+	int minT = DEFAULT_MIN_T;
 
 	/** Minimum number of visits until a Node will be selected using the UCT formula, below this number random selection is used */
-	int minVisits;
+	int minVisits = DEFAULT_MIN_VISITS;
 
 	/** Variable to assign IDs to a node */
-	unsigned int currentNodeID;
+	unsigned int currentNodeID = 0;
 
 	/** The number of search iterations so far */
 	unsigned int iterations = 0;
@@ -442,9 +442,7 @@ public:
 	 * @note backprop, termination and scoring will be deleted by this MCTS instance
 	 */
 	MCTS(T* rootData, Backpropagation<T>* backprop, TerminationCheck<T>* termination, Scoring<T>* scoring) :
-	    backprop(backprop), termination(termination), scoring(scoring), root(new Node<T,A,E>(0, rootData, 0, new A())),
-	        time(milliseconds(DEFAULT_TIME)), minIterations(DEFAULT_MIN_ITERATIONS), C(DEFAULT_C),
-	            W(DEFAULT_W), minT(DEFAULT_MIN_T), minVisits(DEFAULT_MIN_VISITS), currentNodeID(0){}
+	    backprop(backprop), termination(termination), scoring(scoring), root(new Node<T,A,E>(0, rootData, 0, new A())){}
 
 	/**
 	 * @brief Runs the MCTS algorithm and searches for the best Action
