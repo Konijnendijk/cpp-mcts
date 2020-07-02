@@ -412,7 +412,7 @@ class MCTS {
 	TerminationCheck<T>* termination;
 	Scoring<T>* scoring;
 
-	Node<T,A,E>* root;
+	Node<T,A,E> root;
 
 	/** The time MCTS is allowed to search */
 	milliseconds time = milliseconds(DEFAULT_TIME);
@@ -442,7 +442,7 @@ public:
 	 * @note backprop, termination and scoring will be deleted by this MCTS instance
 	 */
 	MCTS(T* rootData, Backpropagation<T>* backprop, TerminationCheck<T>* termination, Scoring<T>* scoring) :
-	    backprop(backprop), termination(termination), scoring(scoring), root(new Node<T,A,E>(0, rootData, 0, new A())){}
+	    backprop(backprop), termination(termination), scoring(scoring), root(0, rootData, 0, new A()){}
 
 	/**
 	 * @brief Runs the MCTS algorithm and searches for the best Action
@@ -455,7 +455,7 @@ public:
 		// Select the Action with the best score
 		Node<T,A,E>* best=nullptr;
 		float bestScore=-std::numeric_limits<float>::max();
-		std::vector<Node<T,A,E>*>& children=root->getChildren();
+		std::vector<Node<T,A,E>*>& children=root.getChildren();
 
 		for (unsigned int i=0; i<children.size();i++){
 			float score=children[i]->getAvgScore();
@@ -524,12 +524,11 @@ public:
      * @see writeDotFile()
      * @return The root of the MCTS tree
      */
-	Node<T,A,E>* getRoot(){
+	Node<T,A,E>& getRoot(){
 		return root;
 	}
 
 	~MCTS(){
-		delete root;
 		delete backprop;
 		delete termination;
 		delete scoring;
@@ -544,7 +543,7 @@ private:
 			/**
 			 * Selection
 			 */
-			Node<T,A,E>* selected=root;
+			Node<T,A,E>* selected=&root;
 			while(!selected->shouldExpand())
 				selected=select(selected);
 
