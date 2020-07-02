@@ -3,10 +3,10 @@
 #include <cstring>
 #include <iostream>
 
-#define WIN_CHECK(a, b, c)                                                                                             \
-    {                                                                                                                  \
-        if (board[a] == board[b] && board[b] == board[c] && board[a] != NONE)                                          \
-            return board[a];                                                                                           \
+#define WIN_CHECK(a, b, c)                                                    \
+    {                                                                         \
+        if (board[a] == board[b] && board[b] == board[c] && board[a] != NONE) \
+            return board[a];                                                  \
     }
 
 Board::Board()

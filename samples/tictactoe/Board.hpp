@@ -3,7 +3,9 @@
 #ifndef CPP_MCTS_BOARD_HPP
 #define CPP_MCTS_BOARD_HPP
 
-enum Player { CROSS, CIRCLE, NONE };
+enum Player { CROSS,
+    CIRCLE,
+    NONE };
 
 /**
  * TicTacToe Board implementation

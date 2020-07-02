@@ -14,7 +14,8 @@ using namespace std;
  * @param root Root of the MCTS tree
  * @param filename Filename to write the .dot file to
  */
-template <class T, class A, class G> void writeDotFile(Node<T, A, G>* root, const char* filename)
+template <class T, class A, class G>
+void writeDotFile(Node<T, A, G>* root, const char* filename)
 {
     ofstream dot;
     dot.open(filename);

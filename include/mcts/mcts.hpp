@@ -52,7 +52,8 @@ public:
  *
  * @tparam The State type this Action can be executed on
  */
-template <class T> class Action {
+template <class T>
+class Action {
     friend std::ostream& operator<<(std::ostream& strm, Action<T>& a)
     {
         a.print(strm);
@@ -82,7 +83,8 @@ public:
  *
  * A strategy is a behaviour that can generate an Action depending on a State.
  */
-template <class T> class Strategy {
+template <class T>
+class Strategy {
 protected:
     /** The state a PlayoutStrategy or ExpansionStrategy will act on  */
     T* state;
@@ -107,7 +109,8 @@ public:
  * @tparam T The type of State this ExpansionStrategy can generate Actions for
  * @tparam A The type of Actions that will be generated
  */
-template <class T, class A> class ExpansionStrategy : public Strategy<T> {
+template <class T, class A>
+class ExpansionStrategy : public Strategy<T> {
 
 public:
     ExpansionStrategy(T* state)
@@ -146,7 +149,8 @@ public:
  * @tparam T The type of State this PlayoutStrategy can generate Actions for
  * @tparam A The type of Actions that will be generated
  */
-template <class T, class A> class PlayoutStrategy : public Strategy<T> {
+template <class T, class A>
+class PlayoutStrategy : public Strategy<T> {
 
 public:
     PlayoutStrategy(T* state)
@@ -181,7 +185,8 @@ public:
  * @tparam T The State type this Backpropagation can calculate updated scores
  * for
  */
-template <class T> class Backpropagation {
+template <class T>
+class Backpropagation {
 
 public:
     Backpropagation() {}
@@ -204,7 +209,8 @@ public:
  *
  * @tparam T The State type this TeminationCheck can check
  */
-template <class T> class TerminationCheck {
+template <class T>
+class TerminationCheck {
 
 public:
     TerminationCheck() {}
@@ -228,7 +234,8 @@ public:
  *
  * @tparam T The State type this Scoring can calculate scores for
  */
-template <class T> class Scoring {
+template <class T>
+class Scoring {
 
 public:
     Scoring() {}
@@ -257,7 +264,8 @@ public:
  * @tparam A The type of Action taken to get to this node
  * @tparam E The ExpansionStrategy to use when generating new nodes
  */
-template <class T, class A, class E> class Node {
+template <class T, class A, class E>
+class Node {
     unsigned int id;
     T* data;
     Node<T, A, E>* parent;
@@ -404,7 +412,8 @@ public:
  * @tparam E The ExpansionStrategy this MCTS uses
  * @tparam P The PlayoutStrategy this MCTS uses
  */
-template <class T, class A, class E, class P> class MCTS {
+template <class T, class A, class E, class P>
+class MCTS {
     /** Default thinking time in milliseconds */
     const int DEFAULT_TIME = 500;
 
