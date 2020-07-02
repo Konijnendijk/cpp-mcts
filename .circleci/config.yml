@@ -32,7 +32,7 @@ jobs:
           name: Check Formatting
           command: |
             git-clang-format --quiet --style file --diff origin/master ${CIRCLE_SHA1} > /tmp/formatting.diff
-            if [ -s /tmp/formatting.diff ]
+            if [ -s /tmp/formatting.diff ] && [ ! "$(cat /tmp/formatting.diff)" = "no modified files to format" ]
             then
               echo "Code is not properly formatted:"
               cat /tmp/formatting.diff
