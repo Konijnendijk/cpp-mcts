@@ -60,21 +60,18 @@ public:
 
 TTTMCTSPlayer::TTTMCTSPlayer(Board* board)
     : board(board)
-    , mcts()
 {
 }
 
-TTTAction* TTTMCTSPlayer::calculateAction()
+TTTAction TTTMCTSPlayer::calculateAction()
 {
-    mcts = createMCTS();
-    TTTAction* a = mcts->calculateAction();
-    delete mcts;
-    return a;
+    auto mcts = createMCTS();
+    return mcts.calculateAction();
 }
 
-TTTMCTS* TTTMCTSPlayer::createMCTS()
+TTTMCTS TTTMCTSPlayer::createMCTS()
 {
-    return new TTTMCTS(new Board(*board), new TTTBackpropagation(board->getCurrentPlayer()), new TTTTerminationCheck(),
+    return TTTMCTS(new Board(*board), new TTTBackpropagation(board->getCurrentPlayer()), new TTTTerminationCheck(),
         new TTTScoring(board->getCurrentPlayer()));
 }
 

@@ -39,8 +39,7 @@ float playGame(uint numTurns, uint maxChoice, int seed)
         mcts.setTime(0);
         mcts.setMinIterations(TEST_GAME_MCTS_ITERATIONS);
         auto action = mcts.calculateAction();
-        action->execute(state);
-        delete action;
+        action.execute(state);
     }
 
     TestGameScoring scoring(expectedSequence);

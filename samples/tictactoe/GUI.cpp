@@ -184,8 +184,8 @@ void GUI::movePlayed()
     }
 
     if (!isCurrentPlayerHuman()) {
-        TTTAction* action = ai->calculateAction();
-        playMove(action->getX(), action->getY());
+        auto action = ai->calculateAction();
+        playMove(action.getX(), action.getY());
     }
 }
 

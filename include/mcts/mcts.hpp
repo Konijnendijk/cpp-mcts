@@ -482,7 +482,7 @@ public:
      *
      * @return The Action found by MCTS
      */
-    A* calculateAction()
+    A calculateAction()
     {
         search();
 
@@ -499,7 +499,7 @@ public:
             }
         }
 
-        return new A(*best->getAction());
+        return A(*best->getAction());
     }
 
     /**
