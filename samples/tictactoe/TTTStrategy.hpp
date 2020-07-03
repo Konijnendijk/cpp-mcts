@@ -10,13 +10,11 @@ class TTTExpansionStrategy : public ExpansionStrategy<Board, TTTAction> {
     int currentX, currentY;
 
 public:
-    TTTExpansionStrategy(Board* state);
+    explicit TTTExpansionStrategy(Board* state);
 
-    TTTAction* generateNext();
+    TTTAction generateNext() override;
 
-    bool canGenerateNext() { return currentX != -1 && currentY != -1; };
-
-    ~TTTExpansionStrategy() override {}
+    bool canGenerateNext() override;
 
 private:
     /**
@@ -28,11 +26,9 @@ private:
 class TTTPlayoutStrategy : public PlayoutStrategy<Board, TTTAction> {
 
 public:
-    TTTPlayoutStrategy(Board* state);
+    explicit TTTPlayoutStrategy(Board* state);
 
     void generateRandom(TTTAction* action) override;
-
-    ~TTTPlayoutStrategy() override {}
 };
 
 #endif // CPP_MCTS_TTTACTIONGENERATOR_HPP

@@ -8,13 +8,14 @@ TTTExpansionStrategy::TTTExpansionStrategy(Board* state)
     searchNextPossibleMove(currentX, currentY);
 }
 
-TTTAction* TTTExpansionStrategy::generateNext()
+TTTAction TTTExpansionStrategy::generateNext()
 {
-    TTTAction* a = new TTTAction(currentX, currentY);
+    int oldX = currentX;
+    int oldY = currentY;
 
     currentY++;
     searchNextPossibleMove(currentX, currentY);
-    return a;
+    return TTTAction(oldX, oldY);
 }
 
 void TTTExpansionStrategy::searchNextPossibleMove(int& x, int& y)
@@ -36,6 +37,11 @@ void TTTExpansionStrategy::searchNextPossibleMove(int& x, int& y)
 
     x = -1;
     y = -1;
+}
+
+bool TTTExpansionStrategy::canGenerateNext()
+{
+    return currentX != -1 && currentY != -1;
 }
 
 TTTPlayoutStrategy::TTTPlayoutStrategy(Board* state)

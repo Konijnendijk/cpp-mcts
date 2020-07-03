@@ -22,7 +22,7 @@ public:
     }
 
 private:
-    MockAction* generateNext() override { return nullptr; }
+    MockAction generateNext() override { return MockAction(); }
 
     bool canGenerateNext() override { return false; }
 };

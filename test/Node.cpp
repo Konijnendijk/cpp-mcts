@@ -7,8 +7,8 @@ typedef Node<MockState, MockAction, MockExpansionStrategy> MockNode;
 
 MockNode* buildMockNode(unsigned int id, MockNode* parent)
 {
-    auto state = new MockState();
-    auto action = new MockAction();
+    MockState state;
+    MockAction action;
     return new MockNode(id, state, parent, action);
 }
 

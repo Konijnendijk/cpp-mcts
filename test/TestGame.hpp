@@ -108,7 +108,7 @@ public:
     {
     }
 
-    TestGameAction* generateNext() override { return new TestGameAction(currentChoice++); }
+    TestGameAction generateNext() override { return TestGameAction(currentChoice++); }
 
     bool canGenerateNext() override { return currentChoice <= state->getMaxChoice(); }
 };

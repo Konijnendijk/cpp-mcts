@@ -113,7 +113,7 @@ template <class T, class A>
 class ExpansionStrategy : public Strategy<T> {
 
 public:
-    ExpansionStrategy(T* state)
+    explicit ExpansionStrategy(T* state)
         : Strategy<T>(state)
     {
     }
@@ -127,14 +127,12 @@ public:
      * @return An Action that has not been returned before, or nullptr if no such
      * Action exists
      */
-    virtual A* generateNext() = 0;
+    virtual A generateNext() = 0;
 
     /**
      * @return True if generateNext() can generate a new Action
      */
     virtual bool canGenerateNext() = 0;
-
-    virtual ~ExpansionStrategy() override {}
 };
 
 /**
@@ -267,12 +265,12 @@ public:
 template <class T, class A, class E>
 class Node {
     unsigned int id;
-    T* data;
+    T data;
     Node<T, A, E>* parent;
     std::vector<Node<T, A, E>*> children;
     /** Action done to get from the parent to this node */
-    A* action;
-    ExpansionStrategy<T, A>* expansion;
+    A action;
+    E expansion;
     int numVisits;
     float score;
 
@@ -288,14 +286,16 @@ public:
      * @param parent The parent node
      * @param action The action taken to get to this node from the parent node
      */
-    Node(unsigned int id, T* data, Node<T, A, E>* parent, A* action)
+    Node(unsigned int id, T data, Node<T, A, E>* parent, A action)
         : id(id)
-        , data(data)
+        , data(std::move(data))
         , parent(parent)
-        , action(action)
-        , expansion(new E(data))
+        , action(std::move(action))
+        , expansion(&this->data)
         , numVisits(0)
-        , score(0) {};
+        , score(0)
+    {
+    }
 
     /**
      * @return The unique ID of this node
@@ -305,7 +305,7 @@ public:
     /**
      * @return The State associated with this Node
      */
-    T* getData() { return data; }
+    T& getData() { return data; }
 
     /**
      * @return This Node's parent or nullptr if no parent exists (this Node is the
@@ -322,12 +322,12 @@ public:
      * @return The Action to execute on the parent's State to get from the
      * parent's State to this Node's State.
      */
-    A* getAction() { return action; }
+    A& getAction() { return action; }
 
     /**
      * @return A new action if there are any remaining, nullptr if not
      */
-    A* generateNextAction() { return expansion->generateNext(); }
+    A generateNextAction() { return expansion.generateNext(); }
 
     /**
      * @brief Add a child to this Node's children
@@ -342,7 +342,7 @@ public:
      */
     bool shouldExpand()
     {
-        bool result = children.empty() || expansion->canGenerateNext();
+        bool result = children.empty() || expansion.canGenerateNext();
         return result;
     }
 
@@ -368,9 +368,6 @@ public:
 
     ~Node()
     {
-        delete data;
-        delete action;
-        delete expansion;
         for (Node<T, A, E>* child : children)
             delete child;
     }
@@ -473,7 +470,7 @@ public:
         : backprop(backprop)
         , termination(termination)
         , scoring(scoring)
-        , root(0, rootData, 0, new A())
+        , root(0, *rootData, 0, A())
     {
     }
 
@@ -499,7 +496,7 @@ public:
             }
         }
 
-        return A(*best->getAction());
+        return best->getAction();
     }
 
     /**
@@ -573,8 +570,8 @@ private:
             while (!selected->shouldExpand())
                 selected = select(selected);
 
-            if (termination->isTerminal(selected->getData())) {
-                backProp(selected, scoring->score(selected->getData()));
+            if (termination->isTerminal(&selected->getData())) {
+                backProp(selected, scoring->score(&selected->getData()));
                 continue;
             }
 
@@ -624,17 +621,17 @@ private:
      * the tree. */
     Node<T, A, E>* expandNext(Node<T, A, E>* node)
     {
-        T* expandedData = new T(*node->getData());
-        A* action = node->generateNextAction();
-        action->execute(expandedData);
-        Node<T, A, E>* newNode = new Node<T, A, E>(++currentNodeID, expandedData, node, action);
+        T expandedData(node->getData());
+        auto action = node->generateNextAction();
+        action.execute(&expandedData);
+        auto newNode = new Node<T, A, E>(++currentNodeID, expandedData, node, action);
         node->addChild(newNode);
         return newNode;
     }
     /** Simulate until the stopping condition is reached. */
     void simulate(Node<T, A, E>* node)
     {
-        T state(*node->getData());
+        T state(node->getData());
         std::vector<Action<T>*> actions;
 
         A action;
@@ -655,7 +652,7 @@ private:
     void backProp(Node<T, A, E>* node, float score)
     {
         while (node->getParent() != 0) {
-            node->update(backprop->updateScore(node->getData(), score));
+            node->update(backprop->updateScore(&node->getData(), score));
             node = node->getParent();
         }
         node->update(score);
