@@ -2,7 +2,7 @@
 FROM debian:buster
 
 # General Tools
-RUN apt-get update && apt-get install -y llvm clang clang-tidy clang-format libc++-7-dev libc++abi-dev libgl1-mesa-dev git curl unzip python3 python3-pip xsltproc
+RUN apt-get update && apt-get install -y llvm clang clang-tidy clang-format libc++-7-dev libc++abi-dev libgl1-mesa-dev git curl unzip python3 python3-pip xsltproc pkg-config
 # Conan C++ package manager
 RUN pip3 install conan
 # SonarQube C++ build wrapper
