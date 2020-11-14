@@ -158,11 +158,12 @@ public:
 
     /**
      * @brief Generate a random action
+     *
      * Generate a random Action that can be performed on Strategy#state.
      *
-     * @return A random Action that can be executed on Strategy#state
+     * @param action the action to store the result in
      */
-    virtual void generateRandom(A* action) = 0;
+    virtual void generateRandom(A& action) = 0;
 
     virtual ~PlayoutStrategy() override {}
 };
@@ -639,7 +640,7 @@ private:
         // not
         while (!termination->isTerminal(&state)) {
             P playout(&state);
-            playout.generateRandom(&action);
+            playout.generateRandom(action);
             action.execute(state);
         }
 

@@ -128,7 +128,7 @@ public:
     {
     }
 
-    void generateRandom(TestGameAction* action) override { action->setChoice(distribution(generator)); }
+    void generateRandom(TestGameAction& action) override { action.setChoice(distribution(generator)); }
 };
 
 /**
