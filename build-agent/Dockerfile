@@ -11,6 +11,6 @@ RUN curl https://sonarcloud.io/static/cpp/build-wrapper-linux-x86.zip -O && unzi
 RUN cd /tmp && curl https://github.com/Kitware/CMake/releases/download/v3.15.6/cmake-3.15.6.tar.gz -O -L && \
     tar -xf cmake-3.15.6.tar.gz && cd cmake-3.15.6 && CC=clang CXX=clang++ ./bootstrap && make install && rm -rf /tmp/cmake*
 # Build requirements
-RUN apt-get install -y clang-tidy clang-format libgl1-mesa-dev xsltproc pkg-config libfontenc-dev libice-dev
+RUN apt-get install -y clang-tidy clang-format libgl1-mesa-dev xsltproc pkg-config libfontenc-dev libice-dev libsm-dev
 
 ENV PATH="/opt/build-wrapper-linux-x86:${PATH}"
