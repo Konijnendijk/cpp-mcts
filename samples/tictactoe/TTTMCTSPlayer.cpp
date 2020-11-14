@@ -45,7 +45,7 @@ public:
     /**
      * @return The score the given Board is assigned
      */
-    float score(Board& state) override
+    float score(const Board& state) override
     {
         if (state.won() == player)
             return 1;

@@ -14,7 +14,8 @@
 
 GUI::GUI(QWidget* parent)
     : QWidget(parent)
-    , board(), ai()
+    , board()
+    , ai()
 {
     createPlayerSelect();
     createBoard();

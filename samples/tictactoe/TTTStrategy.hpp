@@ -28,7 +28,7 @@ class TTTPlayoutStrategy : public PlayoutStrategy<Board, TTTAction> {
 public:
     explicit TTTPlayoutStrategy(Board* state);
 
-    void generateRandom(TTTAction* action) override;
+    void generateRandom(TTTAction& action) override;
 };
 
 #endif // CPP_MCTS_TTTACTIONGENERATOR_HPP

@@ -49,7 +49,7 @@ TTTPlayoutStrategy::TTTPlayoutStrategy(Board* state)
 {
 }
 
-void TTTPlayoutStrategy::generateRandom(TTTAction* action)
+void TTTPlayoutStrategy::generateRandom(TTTAction& action)
 {
     int x = rand() % 3, y = rand() % 3;
 
@@ -57,6 +57,6 @@ void TTTPlayoutStrategy::generateRandom(TTTAction* action)
     while (state->position(x, y) != NONE) {
         x = rand() % 3, y = rand() % 3;
     }
-    action->setX(x);
-    action->setY(y);
+    action.setX(x);
+    action.setY(y);
 }
