@@ -7,7 +7,15 @@ include(CTest)
 set(CPP_MCTS_BUILD_SAMPLES ON CACHE BOOL "Build the sample applications")
 
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
-conan_basic_setup(TARGETS)
+conan_basic_setup(KEEP_RPATHS TARGETS)
+
+if (APPLE)
+	set(CMAKE_INSTALL_RPATH "@executable_path")
+else()
+	set(CMAKE_INSTALL_RPATH "$ORIGIN")
+endif()
+
+set(CMAKE_BUILD_WITH_INSTALL_RPATH ON)
 
 add_library(cpp_mcts INTERFACE)
 target_compile_features(cpp_mcts INTERFACE cxx_override cxx_auto_type cxx_constexpr cxx_range_for)

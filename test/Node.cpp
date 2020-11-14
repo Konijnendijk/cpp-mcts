@@ -17,7 +17,7 @@ TEST_CASE("nodes can have their scores updated")
     auto node = buildMockNode(1, nullptr);
 
     REQUIRE(node->getNumVisits() == 0);
-    REQUIRE(isnanf(node->getAvgScore()));
+    REQUIRE(isnan(node->getAvgScore()));
 
     SECTION("updating scores")
     {
