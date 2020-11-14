@@ -45,11 +45,11 @@ public:
     /**
      * @return The score the given Board is assigned
      */
-    float score(Board* state) override
+    float score(Board& state) override
     {
-        if (state->won() == player)
+        if (state.won() == player)
             return 1;
-        else if (state->won() != NONE)
+        else if (state.won() != NONE)
             return 0;
         else
             return 0.75;
@@ -58,21 +58,16 @@ public:
     ~TTTScoring() override {}
 };
 
-TTTMCTSPlayer::TTTMCTSPlayer(Board* board)
-    : board(board)
+TTTAction TTTMCTSPlayer::calculateAction(const Board& board)
 {
-}
-
-TTTAction TTTMCTSPlayer::calculateAction()
-{
-    auto mcts = createMCTS();
+    auto mcts = createMCTS(board);
     return mcts.calculateAction();
 }
 
-TTTMCTS TTTMCTSPlayer::createMCTS()
+TTTMCTS TTTMCTSPlayer::createMCTS(const Board& board)
 {
-    return TTTMCTS(new Board(*board), new TTTBackpropagation(board->getCurrentPlayer()), new TTTTerminationCheck(),
-        new TTTScoring(board->getCurrentPlayer()));
+    return TTTMCTS(Board(board), new TTTBackpropagation(board.getCurrentPlayer()), new TTTTerminationCheck(),
+        new TTTScoring(board.getCurrentPlayer()));
 }
 
 TTTMCTSPlayer::~TTTMCTSPlayer() {}

@@ -30,7 +30,7 @@ public:
     /**
      * Plays the given move for the current player of the Board.
      */
-    void execute(Board* data) override { data->play(x, y); }
+    void execute(Board& data) override { data.play(x, y); }
 
     int getX() { return x; }
     void setX(int x) { this->x = x; }

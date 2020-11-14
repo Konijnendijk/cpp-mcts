@@ -73,7 +73,7 @@ public:
      * @note Cloning the state is not required
      * @param state The state to execute on
      */
-    virtual void execute(T* state) = 0;
+    virtual void execute(T& state) = 0;
 
     virtual ~Action() {};
 };
@@ -246,7 +246,7 @@ public:
      *
      * @return A score for the given state
      */
-    virtual float score(T* state) = 0;
+    virtual float score(const T& state) = 0;
 
     virtual ~Scoring() {}
 };
@@ -466,11 +466,11 @@ public:
      * @note backprop, termination and scoring will be deleted by this MCTS
      * instance
      */
-    MCTS(T* rootData, Backpropagation<T>* backprop, TerminationCheck<T>* termination, Scoring<T>* scoring)
+    MCTS(T rootData, Backpropagation<T>* backprop, TerminationCheck<T>* termination, Scoring<T>* scoring)
         : backprop(backprop)
         , termination(termination)
         , scoring(scoring)
-        , root(0, *rootData, 0, A())
+        , root(0, rootData, 0, A())
     {
     }
 
@@ -571,7 +571,7 @@ private:
                 selected = select(selected);
 
             if (termination->isTerminal(&selected->getData())) {
-                backProp(selected, scoring->score(&selected->getData()));
+                backProp(selected, scoring->score(selected->getData()));
                 continue;
             }
 
@@ -623,7 +623,7 @@ private:
     {
         T expandedData(node->getData());
         auto action = node->generateNextAction();
-        action.execute(&expandedData);
+        action.execute(expandedData);
         auto newNode = new Node<T, A, E>(++currentNodeID, expandedData, node, action);
         node->addChild(newNode);
         return newNode;
@@ -640,11 +640,11 @@ private:
         while (!termination->isTerminal(&state)) {
             P playout(&state);
             playout.generateRandom(&action);
-            action.execute(&state);
+            action.execute(state);
         }
 
         // Score the leaf node (end of the game)
-        float s = scoring->score(&state);
+        float s = scoring->score(state);
 
         backProp(node, s);
     }

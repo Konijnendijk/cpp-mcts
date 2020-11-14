@@ -31,8 +31,8 @@ class GUI : public QWidget {
     /*
      * Game logic
      */
-    Board* board;
-    TTTMCTSPlayer* ai;
+    Board board;
+    TTTMCTSPlayer ai;
 
     /*
      * Player selection

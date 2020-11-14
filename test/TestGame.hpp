@@ -90,7 +90,7 @@ public:
     {
     }
 
-    void execute(TestGameState* state) override { state->addChoice(choice); }
+    void execute(TestGameState& state) override { state.addChoice(choice); }
 
     void setChoice(uint newChoice) { this->choice = newChoice; }
 };
@@ -152,9 +152,9 @@ public:
      * @param state the state to score
      * @return the score
      */
-    float score(TestGameState* state) override
+    float score(const TestGameState& state) override
     {
-        const auto& choices = state->getChoices();
+        const auto& choices = state.getChoices();
         uint difference = 0;
         for (int i = 0; i < choices.size(); i++) {
             if (choices[i] != correctNumbers[i]) {

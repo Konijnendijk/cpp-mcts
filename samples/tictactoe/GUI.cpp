@@ -14,7 +14,7 @@
 
 GUI::GUI(QWidget* parent)
     : QWidget(parent)
-    , board(nullptr)
+    , board(), ai()
 {
     createPlayerSelect();
     createBoard();
@@ -145,9 +145,6 @@ void GUI::endGame()
     startGame->setDisabled(false);
 
     disconnect(scene, 0, this, 0);
-
-    delete board;
-    delete ai;
 }
 
 void GUI::playMove(int x, int y)
@@ -156,13 +153,13 @@ void GUI::playMove(int x, int y)
     scene->removeItem(item);
     //	delete item;
 
-    item = board->getCurrentPlayer() == CROSS ? createCross(BOX_SIZE) : createCircle(BOX_SIZE);
+    item = board.getCurrentPlayer() == CROSS ? createCross(BOX_SIZE) : createCircle(BOX_SIZE);
     item->setPos(x * BOX_SIZE, y * BOX_SIZE);
     scene->addItem(item);
 
     item->update(item->boundingRect());
 
-    board->play(x, y);
+    board.play(x, y);
 
     // Return control back to event loop for redrawing
     timer->start();
@@ -170,7 +167,7 @@ void GUI::playMove(int x, int y)
 
 bool GUI::isCurrentPlayerHuman()
 {
-    Player current = board->getCurrentPlayer();
+    Player current = board.getCurrentPlayer();
     int index1 = player1Select->currentIndex();
     int index2 = player2Select->currentIndex();
     return (current == CROSS && index1 == 0) || (current == CIRCLE && index2 == 0);
@@ -178,13 +175,13 @@ bool GUI::isCurrentPlayerHuman()
 
 void GUI::movePlayed()
 {
-    if (board->won() != NONE || board->getTurns() >= 9) {
+    if (board.won() != NONE || board.getTurns() >= 9) {
         endGame();
         return;
     }
 
     if (!isCurrentPlayerHuman()) {
-        auto action = ai->calculateAction();
+        auto action = ai.calculateAction(board);
         playMove(action.getX(), action.getY());
     }
 }
@@ -199,8 +196,7 @@ void GUI::newGame()
 
     fillScene();
 
-    board = new Board();
-    ai = new TTTMCTSPlayer(board);
+    board = Board();
 
     // Return control back to event loop for redrawing
     timer->start();
@@ -208,7 +204,7 @@ void GUI::newGame()
 
 void GUI::boardClicked()
 {
-    if (board != nullptr && isCurrentPlayerHuman()) {
+    if (isCurrentPlayerHuman()) {
         auto selected = scene->selectedItems();
         if (selected.size() > 0) {
             QGraphicsItem* item = selected[0];

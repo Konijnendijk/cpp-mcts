@@ -7,9 +7,7 @@ typedef Node<MockState, MockAction, MockExpansionStrategy> MockNode;
 
 MockNode* buildMockNode(unsigned int id, MockNode* parent)
 {
-    MockState state;
-    MockAction action;
-    return new MockNode(id, state, parent, action);
+    return new MockNode(id, MockState(), parent, MockAction());
 }
 
 TEST_CASE("nodes can have their scores updated")
@@ -17,7 +15,7 @@ TEST_CASE("nodes can have their scores updated")
     auto node = buildMockNode(1, nullptr);
 
     REQUIRE(node->getNumVisits() == 0);
-    REQUIRE(isnanf(node->getAvgScore()));
+    REQUIRE(isnan(node->getAvgScore()));
 
     SECTION("updating scores")
     {

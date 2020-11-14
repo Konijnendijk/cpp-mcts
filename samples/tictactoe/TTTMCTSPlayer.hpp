@@ -16,15 +16,11 @@
 typedef MCTS<Board, TTTAction, TTTExpansionStrategy, TTTPlayoutStrategy> TTTMCTS;
 
 class TTTMCTSPlayer {
-    Board* board;
-
 public:
-    TTTMCTSPlayer(Board* board);
-
     /**
      * Will play one move on the board passed through the constructor.
      */
-    TTTAction calculateAction();
+    TTTAction calculateAction(const Board& board);
 
     ~TTTMCTSPlayer();
 
@@ -32,7 +28,7 @@ private:
     /**
      * Creates a new MCTS instance.
      */
-    TTTMCTS createMCTS();
+    TTTMCTS createMCTS(const Board& board);
 };
 
 #endif // CPP_MCTS_TTTMCTS_HPP
