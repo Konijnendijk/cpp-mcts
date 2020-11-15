@@ -39,7 +39,7 @@ void TTTExpansionStrategy::searchNextPossibleMove(int& x, int& y)
     y = -1;
 }
 
-bool TTTExpansionStrategy::canGenerateNext()
+bool TTTExpansionStrategy::canGenerateNext() const
 {
     return currentX != -1 && currentY != -1;
 }

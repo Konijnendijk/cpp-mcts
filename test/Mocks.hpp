@@ -24,7 +24,7 @@ public:
 private:
     MockAction generateNext() override { return MockAction(); }
 
-    bool canGenerateNext() override { return false; }
+    bool canGenerateNext() const override { return false; }
 };
 
 #endif // CPP_MCTS_MOCKS_HPP

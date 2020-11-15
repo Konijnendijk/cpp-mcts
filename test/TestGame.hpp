@@ -110,7 +110,7 @@ public:
 
     TestGameAction generateNext() override { return TestGameAction(currentChoice++); }
 
-    bool canGenerateNext() override { return currentChoice <= state->getMaxChoice(); }
+    bool canGenerateNext() const override { return currentChoice <= state->getMaxChoice(); }
 };
 
 /**
@@ -170,7 +170,7 @@ public:
  */
 class TestGameBackPropagation : public Backpropagation<TestGameState> {
 public:
-    float updateScore(TestGameState* state, float backpropScore) override { return backpropScore; }
+    float updateScore(const TestGameState& state, float backpropScore) override { return backpropScore; }
 };
 
 /**
@@ -178,7 +178,7 @@ public:
  */
 class TestGameTerminationCheck : public TerminationCheck<TestGameState> {
 public:
-    bool isTerminal(TestGameState* state) override { return state->getChoices().size() == state->getNumTurns(); }
+    bool isTerminal(const TestGameState& state) override { return state.getChoices().size() == state.getNumTurns(); }
 };
 
 /**

@@ -132,7 +132,7 @@ public:
     /**
      * @return True if generateNext() can generate a new Action
      */
-    virtual bool canGenerateNext() = 0;
+    virtual bool canGenerateNext() const = 0;
 };
 
 /**
@@ -196,7 +196,7 @@ public:
      * Scoring::score()
      * @return An updated score for the current state
      */
-    virtual float updateScore(T* state, float backpropScore) = 0;
+    virtual float updateScore(const T& state, float backpropScore) = 0;
 
     virtual ~Backpropagation() {}
 };
@@ -218,7 +218,7 @@ public:
      * @return True if the given state can not haven any children, i.e. the end of
      * the game is reached
      */
-    virtual bool isTerminal(T* state) = 0;
+    virtual bool isTerminal(const T& state) = 0;
 
     virtual ~TerminationCheck() {}
 };
@@ -301,29 +301,29 @@ public:
     /**
      * @return The unique ID of this node
      */
-    unsigned int getID() { return id; }
+    unsigned int getID() const { return id; }
 
     /**
      * @return The State associated with this Node
      */
-    T& getData() { return data; }
+    const T& getData() const { return data; }
 
     /**
      * @return This Node's parent or nullptr if no parent exists (this Node is the
      * root)
      */
-    Node<T, A, E>* getParent() { return parent; }
+    Node<T, A, E>* getParent() const { return parent; }
 
     /**
      * @return All children of this Node
      */
-    std::vector<Node<T, A, E>*>& getChildren() { return children; }
+    const std::vector<Node<T, A, E>*>& getChildren() const { return children; }
 
     /**
      * @return The Action to execute on the parent's State to get from the
      * parent's State to this Node's State.
      */
-    A& getAction() { return action; }
+    const A& getAction() const { return action; }
 
     /**
      * @return A new action if there are any remaining, nullptr if not
@@ -341,10 +341,9 @@ public:
      * generated.
      * @return True if it is still possible to add children
      */
-    bool shouldExpand()
+    bool shouldExpand() const
     {
-        bool result = children.empty() || expansion.canGenerateNext();
-        return result;
+        return children.empty() || expansion.canGenerateNext();
     }
 
     /**
@@ -360,12 +359,12 @@ public:
     /**
      * @return The total score divided by the number of visits.
      */
-    float getAvgScore() { return score / numVisits; }
+    float getAvgScore() const { return score / numVisits; }
 
     /**
      * @return The number of times updateScore(score) was called
      */
-    int getNumVisits() { return numVisits; }
+    int getNumVisits() const { return numVisits; }
 
     ~Node()
     {
@@ -487,7 +486,7 @@ public:
         // Select the Action with the best score
         Node<T, A, E>* best = nullptr;
         float bestScore = -std::numeric_limits<float>::max();
-        std::vector<Node<T, A, E>*>& children = root.getChildren();
+        auto& children = root.getChildren();
 
         for (unsigned int i = 0; i < children.size(); i++) {
             float score = children[i]->getAvgScore();
@@ -571,7 +570,7 @@ private:
             while (!selected->shouldExpand())
                 selected = select(selected);
 
-            if (termination->isTerminal(&selected->getData())) {
+            if (termination->isTerminal(selected->getData())) {
                 backProp(selected, scoring->score(selected->getData()));
                 continue;
             }
@@ -600,7 +599,7 @@ private:
         Node<T, A, E>* best = nullptr;
         float bestScore = -std::numeric_limits<float>::max();
 
-        std::vector<Node<T, A, E>*>& children = node->getChildren();
+        auto& children = node->getChildren();
 
         // Select randomly if the Node has not been visited often enough
         if (node->getNumVisits() < minVisits)
@@ -638,7 +637,7 @@ private:
         A action;
         // Check if the end of the game is reached and generate the next state if
         // not
-        while (!termination->isTerminal(&state)) {
+        while (!termination->isTerminal(state)) {
             P playout(&state);
             playout.generateRandom(action);
             action.execute(state);
@@ -653,7 +652,7 @@ private:
     void backProp(Node<T, A, E>* node, float score)
     {
         while (node->getParent() != 0) {
-            node->update(backprop->updateScore(&node->getData(), score));
+            node->update(backprop->updateScore(node->getData(), score));
             node = node->getParent();
         }
         node->update(score);

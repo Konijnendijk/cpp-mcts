@@ -16,10 +16,10 @@ public:
     {
     }
 
-    float updateScore(Board* state, float backpropScore)
+    float updateScore(const Board& state, float backpropScore) override
     {
         // When the current player is our player, the enemy has performed its move and the score should be the inverse
-        return state->getCurrentPlayer() == player ? 1 - backpropScore : backpropScore;
+        return state.getCurrentPlayer() == player ? 1 - backpropScore : backpropScore;
     }
 
     ~TTTBackpropagation() override {}
@@ -29,7 +29,7 @@ class TTTTerminationCheck : public TerminationCheck<Board> {
     /**
      * @return True when the game is won, or the Players draw
      */
-    bool isTerminal(Board* state) override { return state->won() != NONE || state->getTurns() == 9; }
+    bool isTerminal(const Board& state) override { return state.won() != NONE || state.getTurns() == 9; }
 };
 
 class TTTScoring : public Scoring<Board> {

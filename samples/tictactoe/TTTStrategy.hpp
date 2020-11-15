@@ -14,7 +14,7 @@ public:
 
     TTTAction generateNext() override;
 
-    bool canGenerateNext() override;
+    bool canGenerateNext() const override;
 
 private:
     /**
