@@ -14,3 +14,7 @@ class CPPMCTSConan(ConanFile):
         self.run("cmake . {}".format(cmake.command_line))
         self.run("cmake --build . {}".format(cmake.build_config))
         cmake.test(args=['--', 'ARGS=-T Test'])
+
+    def imports(self):
+        self.copy("*.dll", "bin", "bin")
+        self.copy("*.dylib", "bin", "lib")

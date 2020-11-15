@@ -86,6 +86,8 @@ commands:
           name: Conan install
           working_directory: build
           command: conan install --build missing -e CC=clang -e CXX=clang++ -s build_type=<< parameters.build_type >> -s compiler=clang -s compiler.version=7.0 -s compiler.libcxx=libc++ ..
+          environment:
+            CONAN_SYSREQUIRES_MODE: "disabled"
       - save_cache:
           key: conan-<< parameters.build_type >>-{{ checksum "conanfile.py" }}
           when: always
