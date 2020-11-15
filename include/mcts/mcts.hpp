@@ -46,11 +46,11 @@ public:
  * execute on a State.
  *
  * An action is something that acts on a State and results in another. For
- * example in chess
+ * example in chess an action could be to move the queen to g5.
  *
  * <b>Action must implement a copy constructor.</b>
  *
- * @tparam The State type this Action can be executed on
+ * @tparam T The State type this Action can be executed on
  */
 template <class T>
 class Action {
@@ -272,8 +272,8 @@ class Node {
     /** Action done to get from the parent to this node */
     A action;
     E expansion;
-    int numVisits;
-    float score;
+    int numVisits = 0;
+    float score = 0.0F;
 
 public:
     /**
@@ -293,8 +293,6 @@ public:
         , parent(parent)
         , action(std::move(action))
         , expansion(&this->data)
-        , numVisits(0)
-        , score(0)
     {
     }
 
@@ -494,6 +492,15 @@ public:
                 bestScore = score;
                 best = children[i];
             }
+        }
+
+        // If no expansion took place, simply execute a random action
+        if (best == nullptr) {
+            A action;
+            T state(root.getData());
+            auto playout = P(&state);
+            playout.generateRandom(action);
+            return action;
         }
 
         return best->getAction();

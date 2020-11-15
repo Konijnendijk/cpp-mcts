@@ -67,7 +67,7 @@ private:
     void endGame();
     void playMove(int x, int y);
 
-    bool isCurrentPlayerHuman();
+    bool isCurrentPlayerHuman() const;
 
 private slots:
     void newGame();

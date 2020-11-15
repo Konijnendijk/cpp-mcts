@@ -14,8 +14,6 @@
 
 GUI::GUI(QWidget* parent)
     : QWidget(parent)
-    , board()
-    , ai()
 {
     createPlayerSelect();
     createBoard();
@@ -166,7 +164,7 @@ void GUI::playMove(int x, int y)
     timer->start();
 }
 
-bool GUI::isCurrentPlayerHuman()
+bool GUI::isCurrentPlayerHuman() const
 {
     Player current = board.getCurrentPlayer();
     int index1 = player1Select->currentIndex();

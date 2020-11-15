@@ -28,7 +28,7 @@ private:
     /**
      * Creates a new MCTS instance.
      */
-    TTTMCTS createMCTS(const Board& board);
+    TTTMCTS createMCTS(const Board& board) const;
 };
 
 #endif // CPP_MCTS_TTTMCTS_HPP

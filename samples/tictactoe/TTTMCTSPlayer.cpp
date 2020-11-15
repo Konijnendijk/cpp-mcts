@@ -64,10 +64,13 @@ TTTAction TTTMCTSPlayer::calculateAction(const Board& board)
     return mcts.calculateAction();
 }
 
-TTTMCTS TTTMCTSPlayer::createMCTS(const Board& board)
+TTTMCTS TTTMCTSPlayer::createMCTS(const Board& board) const
 {
-    return TTTMCTS(Board(board), new TTTBackpropagation(board.getCurrentPlayer()), new TTTTerminationCheck(),
-        new TTTScoring(board.getCurrentPlayer()));
+    auto backpropagation = new TTTBackpropagation(board.getCurrentPlayer());
+    auto terminationCheck = new TTTTerminationCheck();
+    auto scoring = new TTTScoring(board.getCurrentPlayer());
+    return TTTMCTS(Board(board), backpropagation, terminationCheck,
+        scoring);
 }
 
 TTTMCTSPlayer::~TTTMCTSPlayer() {}

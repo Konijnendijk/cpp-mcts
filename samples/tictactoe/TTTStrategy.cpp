@@ -18,7 +18,7 @@ TTTAction TTTExpansionStrategy::generateNext()
     return TTTAction(oldX, oldY);
 }
 
-void TTTExpansionStrategy::searchNextPossibleMove(int& x, int& y)
+void TTTExpansionStrategy::searchNextPossibleMove(int& x, int& y) const
 {
     if (y == 3) {
         x++;

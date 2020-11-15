@@ -20,7 +20,7 @@ private:
     /**
      * Increment x and y until an empty square is found
      */
-    void searchNextPossibleMove(int& x, int& y);
+    void searchNextPossibleMove(int& x, int& y) const;
 };
 
 class TTTPlayoutStrategy : public PlayoutStrategy<Board, TTTAction> {
