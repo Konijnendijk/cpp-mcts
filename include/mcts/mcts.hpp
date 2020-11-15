@@ -3,7 +3,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <limits>
-#include <unordered_map>
+#include <memory>
 #include <vector>
 
 #ifndef CPP_MCTS_MCTS_HPP
@@ -267,8 +267,8 @@ template <class T, class A, class E>
 class Node {
     unsigned int id;
     T data;
-    Node<T, A, E>* parent;
-    std::vector<Node<T, A, E>*> children;
+    std::shared_ptr<Node<T, A, E>> parent;
+    std::vector<std::shared_ptr<Node<T, A, E>>> children;
     /** Action done to get from the parent to this node */
     A action;
     E expansion;
@@ -287,7 +287,7 @@ public:
      * @param parent The parent node
      * @param action The action taken to get to this node from the parent node
      */
-    Node(unsigned int id, T data, Node<T, A, E>* parent, A action)
+    Node(unsigned int id, T data, std::shared_ptr<Node<T, A, E>> parent, A action)
         : id(id)
         , data(std::move(data))
         , parent(parent)
@@ -310,12 +310,12 @@ public:
      * @return This Node's parent or nullptr if no parent exists (this Node is the
      * root)
      */
-    Node<T, A, E>* getParent() const { return parent; }
+    std::shared_ptr<Node<T, A, E>> getParent() const { return parent; }
 
     /**
      * @return All children of this Node
      */
-    const std::vector<Node<T, A, E>*>& getChildren() const { return children; }
+    const std::vector<std::shared_ptr<Node<T, A, E>>>& getChildren() const { return children; }
 
     /**
      * @return The Action to execute on the parent's State to get from the
@@ -332,7 +332,7 @@ public:
      * @brief Add a child to this Node's children
      * @param child The child to add
      */
-    void addChild(Node<T, A, E>* child) { children.push_back(child); }
+    void addChild(std::shared_ptr<Node<T, A, E>> child) { children.push_back(child); }
 
     /**
      * @brief Checks this Node's ActionGenerator if there are more Actions to be
@@ -363,12 +363,6 @@ public:
      * @return The number of times updateScore(score) was called
      */
     int getNumVisits() const { return numVisits; }
-
-    ~Node()
-    {
-        for (Node<T, A, E>* child : children)
-            delete child;
-    }
 };
 
 /**
@@ -432,7 +426,7 @@ class MCTS {
     TerminationCheck<T>* termination;
     Scoring<T>* scoring;
 
-    Node<T, A, E> root;
+    std::shared_ptr<Node<T, A, E>> root;
 
     /** The time MCTS is allowed to search */
     milliseconds time = milliseconds(DEFAULT_TIME);
@@ -468,7 +462,7 @@ public:
         : backprop(backprop)
         , termination(termination)
         , scoring(scoring)
-        , root(0, rootData, 0, A())
+        , root(std::make_shared<Node<T, A, E>>(0, rootData, nullptr, A()))
     {
     }
 
@@ -482,9 +476,9 @@ public:
         search();
 
         // Select the Action with the best score
-        Node<T, A, E>* best = nullptr;
+        std::shared_ptr<Node<T, A, E>> best;
         float bestScore = -std::numeric_limits<float>::max();
-        auto& children = root.getChildren();
+        auto& children = root->getChildren();
 
         for (unsigned int i = 0; i < children.size(); i++) {
             float score = children[i]->getAvgScore();
@@ -495,9 +489,9 @@ public:
         }
 
         // If no expansion took place, simply execute a random action
-        if (best == nullptr) {
+        if (!best) {
             A action;
-            T state(root.getData());
+            T state(root->getData());
             auto playout = P(&state);
             playout.generateRandom(action);
             return action;
@@ -573,19 +567,19 @@ private:
             /**
              * Selection
              */
-            Node<T, A, E>* selected = &root;
+            std::shared_ptr<Node<T, A, E>> selected = root;
             while (!selected->shouldExpand())
-                selected = select(selected);
+                selected = select(*selected);
 
             if (termination->isTerminal(selected->getData())) {
-                backProp(selected, scoring->score(selected->getData()));
+                backProp(*selected, scoring->score(selected->getData()));
                 continue;
             }
 
             /**
              * Expansion
              */
-            Node<T, A, E>* expanded;
+            std::shared_ptr<Node<T, A, E>> expanded;
             int numVisits = selected->getNumVisits();
             if (numVisits >= minT) {
                 expanded = expandNext(selected);
@@ -596,25 +590,25 @@ private:
             /**
              * Simulation
              */
-            simulate(expanded);
+            simulate(*expanded);
         }
     }
 
     /** Selects the best child node at the given node */
-    Node<T, A, E>* select(Node<T, A, E>* node)
+    std::shared_ptr<Node<T, A, E>> select(const Node<T, A, E>& node)
     {
-        Node<T, A, E>* best = nullptr;
+        std::shared_ptr<Node<T, A, E>> best = nullptr;
         float bestScore = -std::numeric_limits<float>::max();
 
-        auto& children = node->getChildren();
+        auto& children = node.getChildren();
 
         // Select randomly if the Node has not been visited often enough
-        if (node->getNumVisits() < minVisits)
+        if (node.getNumVisits() < minVisits)
             return children[rand() % children.size()];
 
         // Use the UCT formula for selection
-        for (Node<T, A, E>* n : children) {
-            float score = n->getAvgScore() + C * (float)sqrt(log(node->getNumVisits()) / n->getNumVisits());
+        for (auto& n : children) {
+            float score = n->getAvgScore() + C * (float)sqrt(log(node.getNumVisits()) / n->getNumVisits());
 
             if (score > bestScore) {
                 bestScore = score;
@@ -626,19 +620,20 @@ private:
     }
     /** Get the next Action for the given Node, execute and add the new Node to
      * the tree. */
-    Node<T, A, E>* expandNext(Node<T, A, E>* node)
+    std::shared_ptr<Node<T, A, E>> expandNext(const std::shared_ptr<Node<T, A, E>>& node)
     {
         T expandedData(node->getData());
         auto action = node->generateNextAction();
         action.execute(expandedData);
-        auto newNode = new Node<T, A, E>(++currentNodeID, expandedData, node, action);
+        auto newNode = std::make_shared<Node<T, A, E>>(++currentNodeID, expandedData, node, action);
         node->addChild(newNode);
         return newNode;
     }
+
     /** Simulate until the stopping condition is reached. */
-    void simulate(Node<T, A, E>* node)
+    void simulate(Node<T, A, E>& node)
     {
-        T state(node->getData());
+        T state(node.getData());
         std::vector<Action<T>*> actions;
 
         A action;
@@ -655,14 +650,17 @@ private:
 
         backProp(node, s);
     }
+
     /** Backpropagate a score through the tree */
-    void backProp(Node<T, A, E>* node, float score)
+    void backProp(Node<T, A, E>& node, float score)
     {
-        while (node->getParent() != 0) {
-            node->update(backprop->updateScore(node->getData(), score));
-            node = node->getParent();
+        node.update(backprop -> updateScore(node.getData(), score));
+
+        std::shared_ptr<Node<T, A, E>> current = node.getParent();
+        while (current) {
+            current->update(backprop->updateScore(current->getData(), score));
+            current = current->getParent();
         }
-        node->update(score);
     }
 };
 
