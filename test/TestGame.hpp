@@ -101,7 +101,6 @@ public:
 class TestGameExpansionStrategy : public ExpansionStrategy<TestGameState, TestGameAction> {
     using ExpansionStrategy<TestGameState, TestGameAction>::ExpansionStrategy;
 
-private:
     uint currentChoice = 0;
 
 public:

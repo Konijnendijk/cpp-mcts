@@ -49,7 +49,8 @@ TTTPlayoutStrategy::TTTPlayoutStrategy(Board* state)
 
 void TTTPlayoutStrategy::generateRandom(TTTAction& action)
 {
-    int x = distribution(generator), y = distribution(generator);
+    int x = distribution(generator);
+    int y = distribution(generator);
 
     // search the Board until an empty square is found
     while (state->position(x, y) != Player::NONE) {
