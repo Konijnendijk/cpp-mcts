@@ -653,7 +653,7 @@ private:
     /** Backpropagate a score through the tree */
     void backProp(Node<T, A, E>& node, float score)
     {
-        node.update(backprop -> updateScore(node.getData(), score));
+        node.update(backprop->updateScore(node.getData(), score));
 
         std::shared_ptr<Node<T, A, E>> current = node.getParent();
         while (current) {
