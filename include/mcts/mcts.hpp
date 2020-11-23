@@ -4,12 +4,11 @@
 #include <iostream>
 #include <limits>
 #include <memory>
+#include <random>
 #include <vector>
 
 #ifndef CPP_MCTS_MCTS_HPP
 #define CPP_MCTS_MCTS_HPP
-
-using namespace std::chrono;
 
 /**
  * @brief Children of this class should represent game states
@@ -38,7 +37,7 @@ protected:
     virtual void print(std::ostream& strm) { strm << this; };
 
 public:
-    virtual ~State() {};
+    virtual ~State() = default;
 };
 
 /**
@@ -75,7 +74,7 @@ public:
      */
     virtual void execute(T& state) = 0;
 
-    virtual ~Action() {};
+    virtual ~Action() = default;
 };
 
 /**
@@ -90,12 +89,12 @@ protected:
     T* state;
 
 public:
-    Strategy(T* state)
+    explicit Strategy(T* state)
         : state(state)
     {
     }
 
-    virtual ~Strategy() {};
+    virtual ~Strategy() = default;
 };
 
 /**
@@ -151,7 +150,7 @@ template <class T, class A>
 class PlayoutStrategy : public Strategy<T> {
 
 public:
-    PlayoutStrategy(T* state)
+    explicit PlayoutStrategy(T* state)
         : Strategy<T>(state)
     {
     }
@@ -164,8 +163,6 @@ public:
      * @param action the action to store the result in
      */
     virtual void generateRandom(A& action) = 0;
-
-    virtual ~PlayoutStrategy() override {}
 };
 
 /**
@@ -188,8 +185,6 @@ template <class T>
 class Backpropagation {
 
 public:
-    Backpropagation() {}
-
     /**
      * @param state The state the score is currently being updated for
      * @param backpropScore The score being backpropagated resulting from
@@ -198,7 +193,7 @@ public:
      */
     virtual float updateScore(const T& state, float backpropScore) = 0;
 
-    virtual ~Backpropagation() {}
+    virtual ~Backpropagation() = default;
 };
 
 /**
@@ -212,15 +207,13 @@ template <class T>
 class TerminationCheck {
 
 public:
-    TerminationCheck() {}
-
     /**
      * @return True if the given state can not haven any children, i.e. the end of
      * the game is reached
      */
     virtual bool isTerminal(const T& state) = 0;
 
-    virtual ~TerminationCheck() {}
+    virtual ~TerminationCheck() = default;
 };
 
 /**
@@ -237,8 +230,6 @@ template <class T>
 class Scoring {
 
 public:
-    Scoring() {}
-
     /**
      * @brief Calculate a score for a terminal state
      *
@@ -249,7 +240,7 @@ public:
      */
     virtual float score(const T& state) = 0;
 
-    virtual ~Scoring() {}
+    virtual ~Scoring() = default;
 };
 
 /**
@@ -273,7 +264,7 @@ class Node {
     A action;
     E expansion;
     int numVisits = 0;
-    float score = 0.0F;
+    float scoreSum = 0.0F;
 
 public:
     /**
@@ -350,14 +341,14 @@ public:
      */
     void update(float score)
     {
-        this->score += score;
+        this->scoreSum += score;
         numVisits++;
     }
 
     /**
      * @return The total score divided by the number of visits.
      */
-    float getAvgScore() const { return score / numVisits; }
+    float getAvgScore() const { return scoreSum / numVisits; }
 
     /**
      * @return The number of times updateScore(score) was called
@@ -412,9 +403,6 @@ class MCTS {
     /** Default C for the UCT formula */
     static constexpr float DEFAULT_C = 0.5;
 
-    /** Default W for the progressive history formula */
-    static constexpr float DEFAULT_W = 0.0;
-
     /** Minimum number of visits until a Node will be expanded */
     const int DEFAULT_MIN_T = 5;
 
@@ -429,16 +417,13 @@ class MCTS {
     std::shared_ptr<Node<T, A, E>> root;
 
     /** The time MCTS is allowed to search */
-    milliseconds time = milliseconds(DEFAULT_TIME);
+    std::chrono::milliseconds allowedComputationTime = std::chrono::milliseconds(DEFAULT_TIME);
 
     /** MCTS can go over time if it has less than this amount of iterations */
     int minIterations = DEFAULT_MIN_ITERATIONS;
 
     /** Tunable bias parameter for node selection */
     float C = DEFAULT_C;
-
-    /** Tunable parameter determining the influence of history */
-    float W = DEFAULT_W;
 
     /** Minimum number of visits until a Node will be expanded */
     int minT = DEFAULT_MIN_T;
@@ -453,6 +438,9 @@ class MCTS {
     /** The number of search iterations so far */
     unsigned int iterations = 0;
 
+    /** Random generator used in node selection */
+    std::mt19937 generator;
+
 public:
     /**
      * @note backprop, termination and scoring will be deleted by this MCTS
@@ -465,6 +453,13 @@ public:
         , root(std::make_shared<Node<T, A, E>>(0, rootData, nullptr, A()))
     {
     }
+
+    MCTS(const MCTS& other) = default;
+    MCTS(MCTS&& other)
+    noexcept = default;
+
+    MCTS<T, A, E, P>& operator=(const MCTS<T, A, E, P>& other) = default;
+    MCTS<T, A, E, P>& operator=(MCTS<T, A, E, P>&& other) noexcept = default;
 
     /**
      * @brief Runs the MCTS algorithm and searches for the best Action
@@ -504,32 +499,26 @@ public:
      * Set the allowed computation time in milliseconds
      * @param time In milliseconds
      */
-    void setTime(int time) { this->time = milliseconds(time); }
+    void setTime(int time) { this->allowedComputationTime = std::chrono::milliseconds(time); }
 
     /**
      * @brief Set the C parameter of the UCT formula
-     * @param C The C parameter
+     * @param newC The C parameter
      */
-    void setC(float C) { this->C = C; }
-
-    /**
-     * @brief Set the W parameter of the progressive history heuristic.
-     * @param W the W parameter
-     */
-    void setW(float W) { this->W = W; }
+    void setC(float newC) { this->C = newC; }
 
     /**
      * @brief Set the minimal number of visits until a node is expanded
-     * @param minT the minimal number of visits
+     * @param newMinT the minimal number of visits
      */
-    void setMinT(float minT) { this->minT = minT; }
+    void setMinT(float newMinT) { this->minT = newMinT; }
 
     /**
      * Set the minimum number of visits until UCT is used instead of random
      * selection during the selection stage.
-     * @param minVisits The minimal number of visits
+     * @param newMinVisits The minimal number of visits
      */
-    void setMinVisits(int minVisits) { this->minVisits = minVisits; }
+    void setMinVisits(int newMinVisits) { this->minVisits = newMinVisits; }
 
     /**
      * Set the minimum number of iterations required before calculateAction()
@@ -559,9 +548,9 @@ public:
 private:
     void search()
     {
-        system_clock::time_point old = system_clock::now();
+        std::chrono::system_clock::time_point old = std::chrono::system_clock::now();
 
-        while (duration_cast<milliseconds>(system_clock::now() - old) < time || iterations < minIterations) {
+        while (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - old) < allowedComputationTime || iterations < minIterations) {
             iterations++;
 
             /**
@@ -603,8 +592,10 @@ private:
         auto& children = node.getChildren();
 
         // Select randomly if the Node has not been visited often enough
-        if (node.getNumVisits() < minVisits)
-            return children[rand() % children.size()];
+        if (node.getNumVisits() < minVisits) {
+            std::uniform_int_distribution<uint> distribution(0, children.size() - 1);
+            return children[distribution(generator)];
+        }
 
         // Use the UCT formula for selection
         for (auto& n : children) {

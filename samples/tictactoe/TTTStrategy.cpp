@@ -2,8 +2,6 @@
 
 TTTExpansionStrategy::TTTExpansionStrategy(Board* state)
     : ExpansionStrategy<Board, TTTAction>(state)
-    , currentX(0)
-    , currentY(0)
 {
     searchNextPossibleMove(currentX, currentY);
 }
@@ -27,7 +25,7 @@ void TTTExpansionStrategy::searchNextPossibleMove(int& x, int& y) const
 
     while (x < 3) {
         while (y < 3) {
-            if (state->position(x, y) == NONE)
+            if (state->position(x, y) == Player::NONE)
                 return;
             y++;
         }
@@ -51,12 +49,21 @@ TTTPlayoutStrategy::TTTPlayoutStrategy(Board* state)
 
 void TTTPlayoutStrategy::generateRandom(TTTAction& action)
 {
-    int x = rand() % 3, y = rand() % 3;
+    int x = distribution(generator);
+    int y = distribution(generator);
 
     // search the Board until an empty square is found
-    while (state->position(x, y) != NONE) {
-        x = rand() % 3, y = rand() % 3;
+    while (state->position(x, y) != Player::NONE) {
+        x = distribution(generator);
+        y = distribution(generator);
     }
     action.setX(x);
     action.setY(y);
 }
+
+TTTPlayoutStrategy::TTTPlayoutStrategy(const TTTPlayoutStrategy& other)
+    : PlayoutStrategy<Board, TTTAction>(other.state)
+{
+}
+
+TTTPlayoutStrategy::~TTTPlayoutStrategy() = default;

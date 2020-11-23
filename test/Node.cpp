@@ -3,7 +3,7 @@
 #include "catch2/catch.hpp"
 #include "mcts/mcts.hpp"
 
-typedef Node<MockState, MockAction, MockExpansionStrategy> MockNode;
+using MockNode = Node<MockState, MockAction, MockExpansionStrategy>;
 
 std::shared_ptr<MockNode> buildMockNode(unsigned int id, std::shared_ptr<MockNode> parent)
 {

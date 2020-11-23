@@ -1,24 +1,31 @@
-#include <iostream>
-
 #include <QGraphicsEllipseItem>
-#include <QGraphicsItemGroup>
-#include <QGraphicsLineItem>
 #include <QGraphicsWidget>
 #include <QHBoxLayout>
 #include <QPen>
 #include <QTimer>
-#include <QVBoxLayout>
 
 #include "GUI.hpp"
 #include "TTTAction.hpp"
 
+Q_DECLARE_METATYPE(Player)
+
 GUI::GUI(QWidget* parent)
     : QWidget(parent)
+    , playerSelect()
+    , player1Select()
+    , player2Select()
+    , player1()
+    , player2()
+    , startGame()
+    , scene()
+    , view()
+    , timer()
+    , pen()
 {
     createPlayerSelect();
     createBoard();
 
-    QVBoxLayout* layout = new QVBoxLayout();
+    auto layout = new QVBoxLayout();
 
     layout->addWidget(playerSelect);
     layout->addWidget(view);
@@ -46,7 +53,7 @@ void GUI::createPlayerSelect()
 
     startGame = new QPushButton(tr("Start Game"));
 
-    QHBoxLayout* selectLayout = new QHBoxLayout();
+    auto selectLayout = new QHBoxLayout();
 
     selectLayout->addWidget(player1);
     selectLayout->addWidget(player1Select);
@@ -91,42 +98,33 @@ void GUI::fillScene()
 
 QGraphicsItem* GUI::createCross(qreal size)
 {
-    QGraphicsItemGroup* group = new QGraphicsItemGroup();
-    QGraphicsLineItem* line = new QGraphicsLineItem(BOX_PADDING, BOX_PADDING, size - BOX_PADDING, size - BOX_PADDING);
+    auto group = new QGraphicsItemGroup();
+    auto line = new QGraphicsLineItem(BOX_PADDING, BOX_PADDING, size - BOX_PADDING, size - BOX_PADDING);
     line->setPen(*pen);
     group->addToGroup(line);
     line = new QGraphicsLineItem(size - BOX_PADDING, BOX_PADDING, BOX_PADDING, size - BOX_PADDING);
     line->setPen(*pen);
     group->addToGroup(line);
-    group->setData(0, CROSS);
+    group->setData(0, QVariant::fromValue(Player::CROSS));
     return group;
 }
 
 QGraphicsItem* GUI::createCircle(qreal size)
 {
-    QGraphicsEllipseItem* item
+    auto item
         = new QGraphicsEllipseItem(BOX_PADDING, BOX_PADDING, size - BOX_PADDING * 2, size - BOX_PADDING * 2);
     item->setPen(*pen);
-    item->setData(0, CIRCLE);
-    return item;
-}
-
-QGraphicsItem* GUI::createEmpty(qreal size)
-{
-    QGraphicsWidget* item = new QGraphicsWidget();
-    item->resize(size, size);
-    item->setFlag(QGraphicsItem::ItemIsSelectable, true);
-    item->setData(0, NONE);
+    item->setData(0, QVariant::fromValue(Player::CIRCLE));
     return item;
 }
 
 QGraphicsItem* GUI::createGrid(qreal size)
 {
-    QGraphicsItemGroup* group = new QGraphicsItemGroup();
+    auto group = new QGraphicsItemGroup();
 
     qreal step = size / 3;
     for (int i = 1; i < 3; i++) {
-        QGraphicsLineItem* line = new QGraphicsLineItem(i * step, 0, i * step, size);
+        auto line = new QGraphicsLineItem(i * step, 0, i * step, size);
         line->setPen(*pen);
         group->addToGroup(line);
         line = new QGraphicsLineItem(0, i * step, size, i * step);
@@ -143,7 +141,7 @@ void GUI::endGame()
     player2Select->setDisabled(false);
     startGame->setDisabled(false);
 
-    disconnect(scene, 0, this, 0);
+    disconnect(scene, nullptr, this, nullptr);
 }
 
 void GUI::playMove(int x, int y)
@@ -152,7 +150,7 @@ void GUI::playMove(int x, int y)
     scene->removeItem(item);
     //	delete item;
 
-    item = board.getCurrentPlayer() == CROSS ? createCross(BOX_SIZE) : createCircle(BOX_SIZE);
+    item = board.getCurrentPlayer() == Player::CROSS ? createCross(BOX_SIZE) : createCircle(BOX_SIZE);
     item->setPos(x * BOX_SIZE, y * BOX_SIZE);
     scene->addItem(item);
 
@@ -169,18 +167,18 @@ bool GUI::isCurrentPlayerHuman() const
     Player current = board.getCurrentPlayer();
     int index1 = player1Select->currentIndex();
     int index2 = player2Select->currentIndex();
-    return (current == CROSS && index1 == 0) || (current == CIRCLE && index2 == 0);
+    return (current == Player::CROSS && index1 == 0) || (current == Player::CIRCLE && index2 == 0);
 }
 
 void GUI::movePlayed()
 {
-    if (board.won() != NONE || board.getTurns() >= 9) {
+    if (board.won() != Player::NONE || board.getTurns() >= 9) {
         endGame();
         return;
     }
 
     if (!isCurrentPlayerHuman()) {
-        auto action = ai.calculateAction(board);
+        auto action = TTTMCTSPlayer::calculateAction(board);
         playMove(action.getX(), action.getY());
     }
 }
@@ -205,13 +203,20 @@ void GUI::boardClicked()
 {
     if (isCurrentPlayerHuman()) {
         auto selected = scene->selectedItems();
-        if (selected.size() > 0) {
+        if (!selected.empty()) {
             QGraphicsItem* item = selected[0];
-            if (item->data(0) == NONE) {
-                playMove(item->x() / BOX_SIZE, item->y() / BOX_SIZE);
+            if (item->data(0) == QVariant::fromValue(Player::NONE)) {
+                playMove((int)(item->x() / BOX_SIZE), (int)(item->y() / BOX_SIZE));
             }
         }
     }
 }
 
-GUI::~GUI() {}
+QGraphicsItem* GUI::createEmpty(qreal size)
+{
+    auto item = new QGraphicsWidget();
+    item->resize(size, size);
+    item->setFlag(QGraphicsItem::ItemIsSelectable, true);
+    item->setData(0, QVariant::fromValue(Player::NONE));
+    return item;
+}

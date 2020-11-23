@@ -3,33 +3,21 @@
 #include <cstring>
 #include <iostream>
 
-#define WIN_CHECK(a, b, c)                                                    \
-    {                                                                         \
-        if (board[a] == board[b] && board[b] == board[c] && board[a] != NONE) \
-            return board[a];                                                  \
+#define WIN_CHECK(a, b, c)                                                            \
+    {                                                                                 \
+        if (board[a] == board[b] && board[b] == board[c] && board[a] != Player::NONE) \
+            return board[a];                                                          \
     }
 
 Board::Board()
-    : turns(0)
 {
-    board = new Player[9];
-    for (int i = 0; i < 9; i++)
-        board[i] = NONE;
-    current = CROSS;
-}
-
-Board::Board(const Board& old)
-{
-    board = new Player[9];
-    memcpy(board, old.board, sizeof(Player) * 9);
-    current = old.current;
-    turns = old.turns;
+    std::fill(board.begin(), board.end(), Player::NONE);
 }
 
 void Board::play(int x, int y)
 {
     board[y * 3 + x] = this->current;
-    current = current == CROSS ? CIRCLE : CROSS;
+    current = current == Player::CROSS ? Player::CIRCLE : Player::CROSS;
     turns += 1;
 }
 
@@ -43,22 +31,12 @@ Player Board::won() const
         WIN_CHECK(i, i + 3, i + 6);
     WIN_CHECK(0, 4, 8);
     WIN_CHECK(2, 4, 6);
-    return NONE;
+    return Player::NONE;
 }
 
 int Board::getTurns() const { return turns; }
 
 Player Board::getCurrentPlayer() const { return current; }
-
-Board& Board::operator=(const Board& other)
-{
-    if (this != &other) {
-        memcpy(board, other.board, sizeof(Player) * 9);
-        current = other.current;
-        turns = other.turns;
-    }
-    return *this;
-}
 
 void Board::print(std::ostream& strm)
 {
@@ -68,5 +46,3 @@ void Board::print(std::ostream& strm)
         strm << Board::playerToChar(this->board[i]);
     }
 }
-
-Board::~Board() { delete[] board; }

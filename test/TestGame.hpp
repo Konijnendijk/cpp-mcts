@@ -99,15 +99,11 @@ public:
  * @brief Generates child states from the smallest possible choices to the largest.
  */
 class TestGameExpansionStrategy : public ExpansionStrategy<TestGameState, TestGameAction> {
-private:
+    using ExpansionStrategy<TestGameState, TestGameAction>::ExpansionStrategy;
+
     uint currentChoice = 0;
 
 public:
-    explicit TestGameExpansionStrategy(TestGameState* mockState)
-        : ExpansionStrategy(mockState)
-    {
-    }
-
     TestGameAction generateNext() override { return TestGameAction(currentChoice++); }
 
     bool canGenerateNext() const override { return currentChoice <= state->getMaxChoice(); }
@@ -184,6 +180,6 @@ public:
 /**
  * @brief Convenience type definition for an MCTS agent configured with all the classes from this header.
  */
-typedef MCTS<TestGameState, TestGameAction, TestGameExpansionStrategy, TestGamePlayoutStrategy> TestGameMCTS;
+using TestGameMCTS = MCTS<TestGameState, TestGameAction, TestGameExpansionStrategy, TestGamePlayoutStrategy>;
 
 #endif // CPP_MCTS_TESTGAME_HPP
