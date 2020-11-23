@@ -332,7 +332,7 @@ public:
      * @brief Add a child to this Node's children
      * @param child The child to add
      */
-    void addChild(std::shared_ptr<Node<T, A, E>> child) { children.push_back(child); }
+    void addChild(const std::shared_ptr<Node<T, A, E>>& child) { children.push_back(child); }
 
     /**
      * @brief Checks this Node's ActionGenerator if there are more Actions to be
@@ -458,7 +458,7 @@ public:
      * @note backprop, termination and scoring will be deleted by this MCTS
      * instance
      */
-    MCTS(T rootData, Backpropagation<T>* backprop, TerminationCheck<T>* termination, Scoring<T>* scoring)
+    MCTS(const T& rootData, Backpropagation<T>* backprop, TerminationCheck<T>* termination, Scoring<T>* scoring)
         : backprop(backprop)
         , termination(termination)
         , scoring(scoring)
