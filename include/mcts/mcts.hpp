@@ -3,7 +3,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <limits>
-#include <unordered_map>
+#include <memory>
 #include <vector>
 
 #ifndef CPP_MCTS_MCTS_HPP
@@ -46,11 +46,11 @@ public:
  * execute on a State.
  *
  * An action is something that acts on a State and results in another. For
- * example in chess
+ * example in chess an action could be to move the queen to g5.
  *
  * <b>Action must implement a copy constructor.</b>
  *
- * @tparam The State type this Action can be executed on
+ * @tparam T The State type this Action can be executed on
  */
 template <class T>
 class Action {
@@ -73,7 +73,7 @@ public:
      * @note Cloning the state is not required
      * @param state The state to execute on
      */
-    virtual void execute(T* state) = 0;
+    virtual void execute(T& state) = 0;
 
     virtual ~Action() {};
 };
@@ -113,7 +113,7 @@ template <class T, class A>
 class ExpansionStrategy : public Strategy<T> {
 
 public:
-    ExpansionStrategy(T* state)
+    explicit ExpansionStrategy(T* state)
         : Strategy<T>(state)
     {
     }
@@ -127,14 +127,12 @@ public:
      * @return An Action that has not been returned before, or nullptr if no such
      * Action exists
      */
-    virtual A* generateNext() = 0;
+    virtual A generateNext() = 0;
 
     /**
      * @return True if generateNext() can generate a new Action
      */
-    virtual bool canGenerateNext() = 0;
-
-    virtual ~ExpansionStrategy() override {}
+    virtual bool canGenerateNext() const = 0;
 };
 
 /**
@@ -160,11 +158,12 @@ public:
 
     /**
      * @brief Generate a random action
+     *
      * Generate a random Action that can be performed on Strategy#state.
      *
-     * @return A random Action that can be executed on Strategy#state
+     * @param action the action to store the result in
      */
-    virtual void generateRandom(A* action) = 0;
+    virtual void generateRandom(A& action) = 0;
 
     virtual ~PlayoutStrategy() override {}
 };
@@ -197,7 +196,7 @@ public:
      * Scoring::score()
      * @return An updated score for the current state
      */
-    virtual float updateScore(T* state, float backpropScore) = 0;
+    virtual float updateScore(const T& state, float backpropScore) = 0;
 
     virtual ~Backpropagation() {}
 };
@@ -219,7 +218,7 @@ public:
      * @return True if the given state can not haven any children, i.e. the end of
      * the game is reached
      */
-    virtual bool isTerminal(T* state) = 0;
+    virtual bool isTerminal(const T& state) = 0;
 
     virtual ~TerminationCheck() {}
 };
@@ -248,7 +247,7 @@ public:
      *
      * @return A score for the given state
      */
-    virtual float score(T* state) = 0;
+    virtual float score(const T& state) = 0;
 
     virtual ~Scoring() {}
 };
@@ -267,14 +266,14 @@ public:
 template <class T, class A, class E>
 class Node {
     unsigned int id;
-    T* data;
-    Node<T, A, E>* parent;
-    std::vector<Node<T, A, E>*> children;
+    T data;
+    std::shared_ptr<Node<T, A, E>> parent;
+    std::vector<std::shared_ptr<Node<T, A, E>>> children;
     /** Action done to get from the parent to this node */
-    A* action;
-    ExpansionStrategy<T, A>* expansion;
-    int numVisits;
-    float score;
+    A action;
+    E expansion;
+    int numVisits = 0;
+    float score = 0.0F;
 
 public:
     /**
@@ -288,62 +287,61 @@ public:
      * @param parent The parent node
      * @param action The action taken to get to this node from the parent node
      */
-    Node(unsigned int id, T* data, Node<T, A, E>* parent, A* action)
+    Node(unsigned int id, T data, std::shared_ptr<Node<T, A, E>> parent, A action)
         : id(id)
-        , data(data)
+        , data(std::move(data))
         , parent(parent)
-        , action(action)
-        , expansion(new E(data))
-        , numVisits(0)
-        , score(0) {};
+        , action(std::move(action))
+        , expansion(&this->data)
+    {
+    }
 
     /**
      * @return The unique ID of this node
      */
-    unsigned int getID() { return id; }
+    unsigned int getID() const { return id; }
 
     /**
      * @return The State associated with this Node
      */
-    T* getData() { return data; }
+    const T& getData() const { return data; }
 
     /**
      * @return This Node's parent or nullptr if no parent exists (this Node is the
      * root)
      */
-    Node<T, A, E>* getParent() { return parent; }
+    std::shared_ptr<Node<T, A, E>> getParent() const { return parent; }
 
     /**
      * @return All children of this Node
      */
-    std::vector<Node<T, A, E>*>& getChildren() { return children; }
+    const std::vector<std::shared_ptr<Node<T, A, E>>>& getChildren() const { return children; }
 
     /**
      * @return The Action to execute on the parent's State to get from the
      * parent's State to this Node's State.
      */
-    A* getAction() { return action; }
+    const A& getAction() const { return action; }
 
     /**
      * @return A new action if there are any remaining, nullptr if not
      */
-    A* generateNextAction() { return expansion->generateNext(); }
+    A generateNextAction() { return expansion.generateNext(); }
 
     /**
      * @brief Add a child to this Node's children
      * @param child The child to add
      */
-    void addChild(Node<T, A, E>* child) { children.push_back(child); }
+    void addChild(const std::shared_ptr<Node<T, A, E>>& child) { children.push_back(child); }
 
     /**
      * @brief Checks this Node's ActionGenerator if there are more Actions to be
      * generated.
      * @return True if it is still possible to add children
      */
-    bool shouldExpand()
+    bool shouldExpand() const
     {
-        bool result = children.empty() || expansion->canGenerateNext();
-        return result;
+        return children.empty() || expansion.canGenerateNext();
     }
 
     /**
@@ -359,21 +357,12 @@ public:
     /**
      * @return The total score divided by the number of visits.
      */
-    float getAvgScore() { return score / numVisits; }
+    float getAvgScore() const { return score / numVisits; }
 
     /**
      * @return The number of times updateScore(score) was called
      */
-    int getNumVisits() { return numVisits; }
-
-    ~Node()
-    {
-        delete data;
-        delete action;
-        delete expansion;
-        for (Node<T, A, E>* child : children)
-            delete child;
-    }
+    int getNumVisits() const { return numVisits; }
 };
 
 /**
@@ -437,7 +426,7 @@ class MCTS {
     TerminationCheck<T>* termination;
     Scoring<T>* scoring;
 
-    Node<T, A, E> root;
+    std::shared_ptr<Node<T, A, E>> root;
 
     /** The time MCTS is allowed to search */
     milliseconds time = milliseconds(DEFAULT_TIME);
@@ -469,11 +458,11 @@ public:
      * @note backprop, termination and scoring will be deleted by this MCTS
      * instance
      */
-    MCTS(T* rootData, Backpropagation<T>* backprop, TerminationCheck<T>* termination, Scoring<T>* scoring)
+    MCTS(const T& rootData, Backpropagation<T>* backprop, TerminationCheck<T>* termination, Scoring<T>* scoring)
         : backprop(backprop)
         , termination(termination)
         , scoring(scoring)
-        , root(0, rootData, 0, new A())
+        , root(std::make_shared<Node<T, A, E>>(0, rootData, nullptr, A()))
     {
     }
 
@@ -482,14 +471,14 @@ public:
      *
      * @return The Action found by MCTS
      */
-    A* calculateAction()
+    A calculateAction()
     {
         search();
 
         // Select the Action with the best score
-        Node<T, A, E>* best = nullptr;
+        std::shared_ptr<Node<T, A, E>> best;
         float bestScore = -std::numeric_limits<float>::max();
-        std::vector<Node<T, A, E>*>& children = root.getChildren();
+        auto& children = root->getChildren();
 
         for (unsigned int i = 0; i < children.size(); i++) {
             float score = children[i]->getAvgScore();
@@ -499,7 +488,16 @@ public:
             }
         }
 
-        return new A(*best->getAction());
+        // If no expansion took place, simply execute a random action
+        if (!best) {
+            A action;
+            T state(root->getData());
+            auto playout = P(&state);
+            playout.generateRandom(action);
+            return action;
+        }
+
+        return best->getAction();
     }
 
     /**
@@ -569,19 +567,19 @@ private:
             /**
              * Selection
              */
-            Node<T, A, E>* selected = &root;
+            std::shared_ptr<Node<T, A, E>> selected = root;
             while (!selected->shouldExpand())
-                selected = select(selected);
+                selected = select(*selected);
 
             if (termination->isTerminal(selected->getData())) {
-                backProp(selected, scoring->score(selected->getData()));
+                backProp(*selected, scoring->score(selected->getData()));
                 continue;
             }
 
             /**
              * Expansion
              */
-            Node<T, A, E>* expanded;
+            std::shared_ptr<Node<T, A, E>> expanded;
             int numVisits = selected->getNumVisits();
             if (numVisits >= minT) {
                 expanded = expandNext(selected);
@@ -592,25 +590,25 @@ private:
             /**
              * Simulation
              */
-            simulate(expanded);
+            simulate(*expanded);
         }
     }
 
     /** Selects the best child node at the given node */
-    Node<T, A, E>* select(Node<T, A, E>* node)
+    std::shared_ptr<Node<T, A, E>> select(const Node<T, A, E>& node)
     {
-        Node<T, A, E>* best = nullptr;
+        std::shared_ptr<Node<T, A, E>> best = nullptr;
         float bestScore = -std::numeric_limits<float>::max();
 
-        std::vector<Node<T, A, E>*>& children = node->getChildren();
+        auto& children = node.getChildren();
 
         // Select randomly if the Node has not been visited often enough
-        if (node->getNumVisits() < minVisits)
+        if (node.getNumVisits() < minVisits)
             return children[rand() % children.size()];
 
         // Use the UCT formula for selection
-        for (Node<T, A, E>* n : children) {
-            float score = n->getAvgScore() + C * (float)sqrt(log(node->getNumVisits()) / n->getNumVisits());
+        for (auto& n : children) {
+            float score = n->getAvgScore() + C * (float)sqrt(log(node.getNumVisits()) / n->getNumVisits());
 
             if (score > bestScore) {
                 bestScore = score;
@@ -622,43 +620,46 @@ private:
     }
     /** Get the next Action for the given Node, execute and add the new Node to
      * the tree. */
-    Node<T, A, E>* expandNext(Node<T, A, E>* node)
+    std::shared_ptr<Node<T, A, E>> expandNext(const std::shared_ptr<Node<T, A, E>>& node)
     {
-        T* expandedData = new T(*node->getData());
-        A* action = node->generateNextAction();
-        action->execute(expandedData);
-        Node<T, A, E>* newNode = new Node<T, A, E>(++currentNodeID, expandedData, node, action);
+        T expandedData(node->getData());
+        auto action = node->generateNextAction();
+        action.execute(expandedData);
+        auto newNode = std::make_shared<Node<T, A, E>>(++currentNodeID, expandedData, node, action);
         node->addChild(newNode);
         return newNode;
     }
+
     /** Simulate until the stopping condition is reached. */
-    void simulate(Node<T, A, E>* node)
+    void simulate(Node<T, A, E>& node)
     {
-        T state(*node->getData());
-        std::vector<Action<T>*> actions;
+        T state(node.getData());
 
         A action;
         // Check if the end of the game is reached and generate the next state if
         // not
-        while (!termination->isTerminal(&state)) {
+        while (!termination->isTerminal(state)) {
             P playout(&state);
-            playout.generateRandom(&action);
-            action.execute(&state);
+            playout.generateRandom(action);
+            action.execute(state);
         }
 
         // Score the leaf node (end of the game)
-        float s = scoring->score(&state);
+        float s = scoring->score(state);
 
         backProp(node, s);
     }
+
     /** Backpropagate a score through the tree */
-    void backProp(Node<T, A, E>* node, float score)
+    void backProp(Node<T, A, E>& node, float score)
     {
-        while (node->getParent() != 0) {
-            node->update(backprop->updateScore(node->getData(), score));
-            node = node->getParent();
+        node.update(backprop->updateScore(node.getData(), score));
+
+        std::shared_ptr<Node<T, A, E>> current = node.getParent();
+        while (current) {
+            current->update(backprop->updateScore(current->getData(), score));
+            current = current->getParent();
         }
-        node->update(score);
     }
 };
 

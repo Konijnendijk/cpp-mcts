@@ -8,16 +8,17 @@ TTTExpansionStrategy::TTTExpansionStrategy(Board* state)
     searchNextPossibleMove(currentX, currentY);
 }
 
-TTTAction* TTTExpansionStrategy::generateNext()
+TTTAction TTTExpansionStrategy::generateNext()
 {
-    TTTAction* a = new TTTAction(currentX, currentY);
+    int oldX = currentX;
+    int oldY = currentY;
 
     currentY++;
     searchNextPossibleMove(currentX, currentY);
-    return a;
+    return TTTAction(oldX, oldY);
 }
 
-void TTTExpansionStrategy::searchNextPossibleMove(int& x, int& y)
+void TTTExpansionStrategy::searchNextPossibleMove(int& x, int& y) const
 {
     if (y == 3) {
         x++;
@@ -38,12 +39,17 @@ void TTTExpansionStrategy::searchNextPossibleMove(int& x, int& y)
     y = -1;
 }
 
+bool TTTExpansionStrategy::canGenerateNext() const
+{
+    return currentX != -1 && currentY != -1;
+}
+
 TTTPlayoutStrategy::TTTPlayoutStrategy(Board* state)
     : PlayoutStrategy<Board, TTTAction>(state)
 {
 }
 
-void TTTPlayoutStrategy::generateRandom(TTTAction* action)
+void TTTPlayoutStrategy::generateRandom(TTTAction& action)
 {
     int x = rand() % 3, y = rand() % 3;
 
@@ -51,6 +57,6 @@ void TTTPlayoutStrategy::generateRandom(TTTAction* action)
     while (state->position(x, y) != NONE) {
         x = rand() % 3, y = rand() % 3;
     }
-    action->setX(x);
-    action->setY(y);
+    action.setX(x);
+    action.setY(y);
 }

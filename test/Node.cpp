@@ -5,11 +5,9 @@
 
 typedef Node<MockState, MockAction, MockExpansionStrategy> MockNode;
 
-MockNode* buildMockNode(unsigned int id, MockNode* parent)
+std::shared_ptr<MockNode> buildMockNode(unsigned int id, std::shared_ptr<MockNode> parent)
 {
-    auto state = new MockState();
-    auto action = new MockAction();
-    return new MockNode(id, state, parent, action);
+    return std::make_shared<MockNode>(id, MockState(), parent, MockAction());
 }
 
 TEST_CASE("nodes can have their scores updated")
@@ -31,8 +29,6 @@ TEST_CASE("nodes can have their scores updated")
         REQUIRE(node->getNumVisits() == 2);
         REQUIRE(node->getAvgScore() == Approx(0.75F));
     }
-
-    delete node;
 }
 
 TEST_CASE("nodes can build a tree")
@@ -48,6 +44,6 @@ TEST_CASE("nodes can build a tree")
         root->addChild(childA);
         root->addChild(childB);
 
-        REQUIRE(root->getChildren() == std::vector<MockNode*> { childA, childB });
+        REQUIRE(root->getChildren() == std::vector<std::shared_ptr<MockNode>> { childA, childB });
     }
 }

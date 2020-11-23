@@ -22,7 +22,7 @@ public:
     /**
      * @return The player occupying the given position on the Board
      */
-    Player position(int x, int y);
+    Player position(int x, int y) const;
 
     /**
      * Play the given move for the current Player.
@@ -33,17 +33,17 @@ public:
      * @return Player::CROSS or Player::CIRCLE in case of a win, Player::NONE in case of a draw or when the game is not
      * finished yet.
      */
-    Player won();
+    Player won() const;
 
     /**
      * @return The number of times play(x,y) has been called
      */
-    int getTurns();
+    int getTurns() const;
 
     /**
      * @return The Player allowed to make a move
      */
-    Player getCurrentPlayer();
+    Player getCurrentPlayer() const;
 
     /**
      * @return A single character representation of a Player
@@ -63,7 +63,7 @@ public:
     void print(std::ostream& strm) override;
 
     Board& operator=(const Board& other);
-    ~Board();
+    ~Board() override;
 };
 
 #endif // CPP_MCTS_BOARD_HPP

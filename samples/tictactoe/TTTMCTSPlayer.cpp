@@ -16,10 +16,10 @@ public:
     {
     }
 
-    float updateScore(Board* state, float backpropScore)
+    float updateScore(const Board& state, float backpropScore) override
     {
         // When the current player is our player, the enemy has performed its move and the score should be the inverse
-        return state->getCurrentPlayer() == player ? 1 - backpropScore : backpropScore;
+        return state.getCurrentPlayer() == player ? 1 - backpropScore : backpropScore;
     }
 
     ~TTTBackpropagation() override {}
@@ -29,7 +29,7 @@ class TTTTerminationCheck : public TerminationCheck<Board> {
     /**
      * @return True when the game is won, or the Players draw
      */
-    bool isTerminal(Board* state) override { return state->won() != NONE || state->getTurns() == 9; }
+    bool isTerminal(const Board& state) override { return state.won() != NONE || state.getTurns() == 9; }
 };
 
 class TTTScoring : public Scoring<Board> {
@@ -45,11 +45,11 @@ public:
     /**
      * @return The score the given Board is assigned
      */
-    float score(Board* state) override
+    float score(const Board& state) override
     {
-        if (state->won() == player)
+        if (state.won() == player)
             return 1;
-        else if (state->won() != NONE)
+        else if (state.won() != NONE)
             return 0;
         else
             return 0.75;
@@ -58,24 +58,19 @@ public:
     ~TTTScoring() override {}
 };
 
-TTTMCTSPlayer::TTTMCTSPlayer(Board* board)
-    : board(board)
-    , mcts()
+TTTAction TTTMCTSPlayer::calculateAction(const Board& board)
 {
+    auto mcts = createMCTS(board);
+    return mcts.calculateAction();
 }
 
-TTTAction* TTTMCTSPlayer::calculateAction()
+TTTMCTS TTTMCTSPlayer::createMCTS(const Board& board) const
 {
-    mcts = createMCTS();
-    TTTAction* a = mcts->calculateAction();
-    delete mcts;
-    return a;
-}
-
-TTTMCTS* TTTMCTSPlayer::createMCTS()
-{
-    return new TTTMCTS(new Board(*board), new TTTBackpropagation(board->getCurrentPlayer()), new TTTTerminationCheck(),
-        new TTTScoring(board->getCurrentPlayer()));
+    auto backpropagation = new TTTBackpropagation(board.getCurrentPlayer());
+    auto terminationCheck = new TTTTerminationCheck();
+    auto scoring = new TTTScoring(board.getCurrentPlayer());
+    return TTTMCTS(Board(board), backpropagation, terminationCheck,
+        scoring);
 }
 
 TTTMCTSPlayer::~TTTMCTSPlayer() {}

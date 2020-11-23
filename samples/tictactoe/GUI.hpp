@@ -31,8 +31,8 @@ class GUI : public QWidget {
     /*
      * Game logic
      */
-    Board* board;
-    TTTMCTSPlayer* ai;
+    Board board;
+    TTTMCTSPlayer ai;
 
     /*
      * Player selection
@@ -67,7 +67,7 @@ private:
     void endGame();
     void playMove(int x, int y);
 
-    bool isCurrentPlayerHuman();
+    bool isCurrentPlayerHuman() const;
 
 private slots:
     void newGame();

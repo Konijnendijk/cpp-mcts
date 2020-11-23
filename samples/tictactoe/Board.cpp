@@ -33,9 +33,9 @@ void Board::play(int x, int y)
     turns += 1;
 }
 
-Player Board::position(int x, int y) { return board[y * 3 + x]; }
+Player Board::position(int x, int y) const { return board[y * 3 + x]; }
 
-Player Board::won()
+Player Board::won() const
 {
     for (int i = 0; i < 9; i += 3)
         WIN_CHECK(i, i + 1, i + 2);
@@ -46,9 +46,9 @@ Player Board::won()
     return NONE;
 }
 
-int Board::getTurns() { return turns; }
+int Board::getTurns() const { return turns; }
 
-Player Board::getCurrentPlayer() { return current; }
+Player Board::getCurrentPlayer() const { return current; }
 
 Board& Board::operator=(const Board& other)
 {

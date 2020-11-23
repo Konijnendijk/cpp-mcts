@@ -19,18 +19,18 @@ static const int TEST_GAME_MCTS_ITERATIONS = 10000;
  */
 float playGame(uint numTurns, uint maxChoice, int seed)
 {
-    auto state = new TestGameState(numTurns, maxChoice);
+    auto state = TestGameState(numTurns, maxChoice);
 
     std::mt19937 generator(seed);
     std::uniform_int_distribution<uint> distribution(0, maxChoice);
 
-    std::vector<uint> expectedSequence(state->getNumTurns());
+    std::vector<uint> expectedSequence(state.getNumTurns());
     for (auto& entry : expectedSequence) {
         entry = distribution(generator);
     }
 
-    for (int i = 0; i < state->getNumTurns(); i++) {
-        auto copiedState = new TestGameState(*state);
+    for (int i = 0; i < state.getNumTurns(); i++) {
+        auto copiedState = TestGameState(state);
         auto propagation = new TestGameBackPropagation();
         auto terminationCheck = new TestGameTerminationCheck();
         auto scoring = new TestGameScoring(expectedSequence);
@@ -39,8 +39,7 @@ float playGame(uint numTurns, uint maxChoice, int seed)
         mcts.setTime(0);
         mcts.setMinIterations(TEST_GAME_MCTS_ITERATIONS);
         auto action = mcts.calculateAction();
-        action->execute(state);
-        delete action;
+        action.execute(state);
     }
 
     TestGameScoring scoring(expectedSequence);

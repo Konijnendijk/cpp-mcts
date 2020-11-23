@@ -8,7 +8,7 @@ class MockState : public State {
 };
 
 class MockAction : public Action<MockState> {
-    void execute(MockState* state) override
+    void execute(MockState& state) override
     {
         // Mock action, stub implementation
     }
@@ -22,9 +22,9 @@ public:
     }
 
 private:
-    MockAction* generateNext() override { return nullptr; }
+    MockAction generateNext() override { return MockAction(); }
 
-    bool canGenerateNext() override { return false; }
+    bool canGenerateNext() const override { return false; }
 };
 
 #endif // CPP_MCTS_MOCKS_HPP
