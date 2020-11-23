@@ -1,13 +1,10 @@
 #include <iostream>
 
 #include <QGraphicsEllipseItem>
-#include <QGraphicsItemGroup>
-#include <QGraphicsLineItem>
 #include <QGraphicsWidget>
 #include <QHBoxLayout>
 #include <QPen>
 #include <QTimer>
-#include <QVBoxLayout>
 
 #include "GUI.hpp"
 #include "TTTAction.hpp"
