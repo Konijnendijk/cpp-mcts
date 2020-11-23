@@ -3,7 +3,7 @@
 #ifndef CPP_MCTS_BOARD_HPP
 #define CPP_MCTS_BOARD_HPP
 
-enum Player { CROSS,
+enum class Player { CROSS,
     CIRCLE,
     NONE };
 
@@ -11,13 +11,12 @@ enum Player { CROSS,
  * TicTacToe Board implementation
  */
 class Board : public State {
-    Player* board;
-    Player current;
-    int turns;
+    std::vector<Player> board = std::vector<Player>(9);
+    Player current = Player::CROSS;
+    int turns = 0;
 
 public:
     Board();
-    Board(const Board& board);
 
     /**
      * @return The player occupying the given position on the Board
@@ -51,19 +50,16 @@ public:
     static char playerToChar(Player p)
     {
         switch (p) {
-        case NONE:
-            return '-';
-        case CROSS:
+        case Player::CROSS:
             return 'x';
-        case CIRCLE:
+        case Player::CIRCLE:
             return 'o';
+        default:
+            return '-';
         }
     }
 
     void print(std::ostream& strm) override;
-
-    Board& operator=(const Board& other);
-    ~Board() override;
 };
 
 #endif // CPP_MCTS_BOARD_HPP

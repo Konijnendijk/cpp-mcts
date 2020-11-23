@@ -10,8 +10,6 @@
 #ifndef CPP_MCTS_MCTS_HPP
 #define CPP_MCTS_MCTS_HPP
 
-using namespace std::chrono;
-
 /**
  * @brief Children of this class should represent game states
  *
@@ -419,7 +417,7 @@ class MCTS {
     std::shared_ptr<Node<T, A, E>> root;
 
     /** The time MCTS is allowed to search */
-    milliseconds allowedComputationTime = milliseconds(DEFAULT_TIME);
+    std::chrono::milliseconds allowedComputationTime = std::chrono::milliseconds(DEFAULT_TIME);
 
     /** MCTS can go over time if it has less than this amount of iterations */
     int minIterations = DEFAULT_MIN_ITERATIONS;
@@ -455,6 +453,13 @@ public:
         , root(std::make_shared<Node<T, A, E>>(0, rootData, nullptr, A()))
     {
     }
+
+    MCTS(const MCTS& other) = default;
+    MCTS(MCTS&& other)
+    noexcept = default;
+
+    MCTS<T, A, E, P>& operator=(const MCTS<T, A, E, P>& other) = default;
+    MCTS<T, A, E, P>& operator=(MCTS<T, A, E, P>&& other) noexcept = default;
 
     /**
      * @brief Runs the MCTS algorithm and searches for the best Action
@@ -494,7 +499,7 @@ public:
      * Set the allowed computation time in milliseconds
      * @param time In milliseconds
      */
-    void setTime(int time) { this->allowedComputationTime = milliseconds(time); }
+    void setTime(int time) { this->allowedComputationTime = std::chrono::milliseconds(time); }
 
     /**
      * @brief Set the C parameter of the UCT formula
@@ -543,9 +548,9 @@ public:
 private:
     void search()
     {
-        system_clock::time_point old = system_clock::now();
+        std::chrono::system_clock::time_point old = std::chrono::system_clock::now();
 
-        while (duration_cast<milliseconds>(system_clock::now() - old) < allowedComputationTime || iterations < minIterations) {
+        while (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - old) < allowedComputationTime || iterations < minIterations) {
             iterations++;
 
             /**

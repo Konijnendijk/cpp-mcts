@@ -15,11 +15,7 @@ class MockAction : public Action<MockState> {
 };
 
 class MockExpansionStrategy : public ExpansionStrategy<MockState, MockAction> {
-public:
-    explicit MockExpansionStrategy(MockState* mockState)
-        : ExpansionStrategy(mockState)
-    {
-    }
+    using ExpansionStrategy<MockState, MockAction>::ExpansionStrategy;
 
 private:
     MockAction generateNext() override { return MockAction(); }

@@ -32,14 +32,15 @@ class GUI : public QWidget {
      * Game logic
      */
     Board board;
-    TTTMCTSPlayer ai;
 
     /*
      * Player selection
      */
     QGroupBox* playerSelect;
-    QComboBox *player1Select, *player2Select;
-    QLabel *player1, *player2;
+    QComboBox* player1Select;
+    QComboBox* player2Select;
+    QLabel* player1;
+    QLabel* player2;
     QPushButton* startGame;
 
     /*
@@ -51,8 +52,7 @@ class GUI : public QWidget {
     QPen* pen;
 
 public:
-    GUI(QWidget* parent = 0);
-    ~GUI();
+    explicit GUI(QWidget* parent = nullptr);
 
 private:
     void createPlayerSelect();
@@ -61,13 +61,14 @@ private:
 
     QGraphicsItem* createCross(qreal size);
     QGraphicsItem* createCircle(qreal size);
-    QGraphicsItem* createEmpty(qreal size);
     QGraphicsItem* createGrid(qreal size);
 
     void endGame();
     void playMove(int x, int y);
 
     bool isCurrentPlayerHuman() const;
+
+    static QGraphicsItem* createEmpty(qreal size);
 
 private slots:
     void newGame();
