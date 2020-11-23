@@ -634,7 +634,6 @@ private:
     void simulate(Node<T, A, E>& node)
     {
         T state(node.getData());
-        std::vector<Action<T>*> actions;
 
         A action;
         // Check if the end of the game is reached and generate the next state if
