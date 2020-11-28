@@ -18,7 +18,6 @@ endif()
 set(CMAKE_BUILD_WITH_INSTALL_RPATH ON)
 
 add_library(cpp_mcts INTERFACE)
-target_compile_features(cpp_mcts INTERFACE cxx_override cxx_auto_type cxx_constexpr cxx_range_for)
 target_include_directories(cpp_mcts INTERFACE include)
 set_target_properties(cpp_mcts PROPERTIES PUBLIC_HEADER "include/mcts/mcts.hpp;include/mcts/graphviz.hpp")
 install(TARGETS cpp_mcts PUBLIC_HEADER DESTINATION include/mcts)

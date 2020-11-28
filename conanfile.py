@@ -1,10 +1,13 @@
-from conans import ConanFile, CMake
+from conans import ConanFile, CMake, tools
 
 
 class CPPMCTSConan(ConanFile):
     settings = "os", "compiler", "build_type", "arch"
     requires = ["catch2/2.12.2", "qt/5.12.9@bincrafters/stable"]
     generators = "cmake"
+
+    def configure(self):
+        tools.check_min_cppstd(self, "14")
 
     def build(self):
         cmake = CMake(self)

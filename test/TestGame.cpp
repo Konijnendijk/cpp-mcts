@@ -34,7 +34,7 @@ float playGame(uint numTurns, uint maxChoice, int seed)
         auto propagation = new TestGameBackPropagation();
         auto terminationCheck = new TestGameTerminationCheck();
         auto scoring = new TestGameScoring(expectedSequence);
-        TestGameMCTS mcts(copiedState, propagation, terminationCheck, scoring);
+        TestGameMCTS mcts(copiedState, [](TestGameState* testGameState) { return std::make_unique<TestGamePlayoutStrategy>(testGameState); }, propagation, terminationCheck, scoring);
         // Make MCTS deterministic by setting a required number of iterations instead of a time
         mcts.setTime(0);
         mcts.setMinIterations(TEST_GAME_MCTS_ITERATIONS);

@@ -18,6 +18,6 @@ TTTMCTS TTTMCTSPlayer::createMCTS(const Board& board)
     auto backpropagation = new TTTBackpropagation(board.getCurrentPlayer());
     auto terminationCheck = new TTTTerminationCheck();
     auto scoring = new TTTScoring(board.getCurrentPlayer());
-    return TTTMCTS(Board(board), backpropagation, terminationCheck,
+    return TTTMCTS(Board(board), [](Board* state) { return std::make_unique<TTTPlayoutStrategy>(state); },  backpropagation, terminationCheck,
         scoring);
 }

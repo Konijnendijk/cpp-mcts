@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <chrono>
 #include <cmath>
 #include <cstdlib>
@@ -356,6 +357,9 @@ public:
     int getNumVisits() const { return numVisits; }
 };
 
+template<class S, class T>
+using strategy_factory = std::unique_ptr<S>(*)(T*);
+
 /**
  * @brief AI search technique for finding the best Action give a certain State
  *
@@ -441,16 +445,20 @@ class MCTS {
     /** Random generator used in node selection */
     std::mt19937 generator;
 
+    /** A function generating playout strategies */
+    strategy_factory<P, T> playoutStrategyFactory;
+
 public:
     /**
      * @note backprop, termination and scoring will be deleted by this MCTS
      * instance
      */
-    MCTS(const T& rootData, Backpropagation<T>* backprop, TerminationCheck<T>* termination, Scoring<T>* scoring)
+    MCTS(const T& rootData, strategy_factory<P, T> playoutStrategyFactory, Backpropagation<T>* backprop, TerminationCheck<T>* termination, Scoring<T>* scoring)
         : backprop(backprop)
         , termination(termination)
         , scoring(scoring)
         , root(std::make_shared<Node<T, A, E>>(0, rootData, nullptr, A()))
+    , playoutStrategyFactory(playoutStrategyFactory)
     {
     }
 
@@ -470,21 +478,9 @@ public:
     {
         search();
 
-        // Select the Action with the best score
-        std::shared_ptr<Node<T, A, E>> best;
-        float bestScore = -std::numeric_limits<float>::max();
-        auto& children = root->getChildren();
-
-        for (unsigned int i = 0; i < children.size(); i++) {
-            float score = children[i]->getAvgScore();
-            if (score > bestScore) {
-                bestScore = score;
-                best = children[i];
-            }
-        }
-
         // If no expansion took place, simply execute a random action
-        if (!best) {
+        auto& children = root->getChildren();
+        if (children.empty()) {
             A action;
             T state(root->getData());
             auto playout = P(&state);
@@ -492,7 +488,14 @@ public:
             return action;
         }
 
-        return best->getAction();
+        auto best = std::max_element(
+            children.begin(),
+            children.end(),
+            [](const std::shared_ptr<Node<T, A, E>>& child1, const std::shared_ptr<Node<T, A, E>>& child2) {
+                return child1->getAvgScore() < child2->getAvgScore();
+            });
+
+        return (*best)->getAction();
     }
 
     /**
@@ -630,8 +633,8 @@ private:
         // Check if the end of the game is reached and generate the next state if
         // not
         while (!termination->isTerminal(state)) {
-            P playout(&state);
-            playout.generateRandom(action);
+            auto playout = playoutStrategyFactory(&state);
+            playout->generateRandom(action);
             action.execute(state);
         }
 
